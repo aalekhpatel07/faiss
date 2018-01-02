@@ -1,10 +1,14 @@
-FROM nvidia/cuda:8.0-devel-ubuntu16.04
+FROM nvidia/cuda:9.0-devel-ubuntu16.04
 MAINTAINER Pierre Letessier <pletessier@ina.fr>
 
+RUN apt-get update && apt-get install -y software-properties-common
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test
 RUN apt-get update -y
-RUN apt-get install -y libopenblas-dev python-numpy python-dev swig git python-pip wget
+RUN apt-get install -y gcc-6 g++-6 libopenblas-dev python3-dev python3-numpy swig git python3-pip wget
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-6
+RUN gcc --version
 
-RUN pip install matplotlib
+RUN pip3 install matplotlib
 
 COPY . /opt/faiss
 
@@ -12,7 +16,7 @@ WORKDIR /opt/faiss
 
 ENV BLASLDFLAGS /usr/lib/libopenblas.so.0
 
-RUN mv example_makefiles/makefile.inc.Linux ./makefile.inc
+RUN mv example_makefiles/makefile.inc.Linux.cuda9.py3 ./makefile.inc
 
 RUN make tests/test_blas -j $(nproc) && \
     make -j $(nproc) && \
