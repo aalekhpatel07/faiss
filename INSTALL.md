@@ -19,6 +19,9 @@ Steps 2 and 3 depend on 1, but they are otherwise independent.
 
 Alternatively, all 3 steps above can be run by building a Docker image (see section "Docker instructions" below).
 
+It is also possible to build a pure C interface. This optional process is
+described separately (please see the [C interface installation file](c_api/INSTALL.md))
+
 General compilation instructions
 ================================
 
