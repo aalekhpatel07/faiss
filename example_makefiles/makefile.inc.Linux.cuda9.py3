@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 # -*- makefile -*-
-# For Linux x86_64 with CUDA 9 and Python 3
+# For Linux x86_64 with CUDA 9.1 and Python 3
 # tested on Ubuntu 16
 
 CC=g++
@@ -66,11 +66,11 @@ FAISSSHAREDFLAGS=-shared
 BLASCFLAGS=-DFINTEGER=int
 
 # This is for Centos:
-BLASLDFLAGS?=/usr/lib64/libopenblas.so.0
+# BLASLDFLAGS?=/usr/lib64/libopenblas.so.0
 
 # for Ubuntu 16:
 # sudo apt-get install libopenblas-dev python-numpy python-dev
-# BLASLDFLAGS?=/usr/lib/libopenblas.so.0
+BLASLDFLAGS?=/usr/lib/libopenblas.so.0
 
 # for Ubuntu 14:
 # sudo apt-get install libopenblas-dev liblapack3 python-numpy python-dev
@@ -126,8 +126,8 @@ PYTHONCFLAGS=-I/usr/include/python3.5/ -I/usr/lib64/python3.5/site-packages/nump
 # a C++ compiler that supports c++11
 CC11=g++
 
-# root of the cuda 9 installation
-CUDAROOT=/usr/local/cuda-9.0/
+# root of the cuda 9.1 installation
+CUDAROOT=/usr/local/cuda-9.1/
 
 CUDACFLAGS=-I$(CUDAROOT)/include
 
@@ -138,7 +138,6 @@ NVCCFLAGS= $(CUDAFLAGS) \
    -Xcompiler -fPIC \
    -Xcudafe --diag_suppress=unrecognized_attribute \
    -gencode arch=compute_37,code="compute_37" \
-   -gencode arch=compute_52,code="compute_52" \
    -gencode arch=compute_61,code="compute_61" \
    --std c++11 -lineinfo \
    -ccbin $(CC11) -DFAISS_USE_FLOAT16

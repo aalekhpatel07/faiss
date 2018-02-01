@@ -1,4 +1,4 @@
-FROM nvidia/cuda:9.0-devel-ubuntu16.04
+FROM nvidia/cuda:9.1-devel-ubuntu16.04
 MAINTAINER Pierre Letessier <pletessier@ina.fr>
 
 RUN apt-get update && apt-get install -y software-properties-common
