@@ -29,9 +29,9 @@ RUN cd gpu && \
     make test/demo_ivfpq_indexing_gpu && \
     make py
 
-RUN ./tests/test_blas && \
-    tests/demo_ivfpq_indexing && \
-    gpu/test/demo_ivfpq_indexing_gpu
+#RUN ./tests/test_blas && \
+#    tests/demo_ivfpq_indexing
+RUN gpu/test/demo_ivfpq_indexing_gpu
 
 # RUN wget ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz && \
 #     tar xf sift.tar.gz && \
