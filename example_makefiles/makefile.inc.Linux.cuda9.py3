@@ -126,8 +126,8 @@ PYTHONCFLAGS=-I/usr/include/python3.5/ -I/usr/lib64/python3.5/site-packages/nump
 # a C++ compiler that supports c++11
 CC11=g++
 
-# root of the cuda 9.1 installation
-CUDAROOT=/usr/local/cuda-9.1/
+# root of the cuda 9.0 installation
+CUDAROOT=/usr/local/cuda-9.0/
 
 CUDACFLAGS=-I$(CUDAROOT)/include
 

@@ -1,4 +1,4 @@
-FROM nvidia/cuda:9.1-devel-ubuntu16.04
+FROM nvidia/cuda:9.0-devel-ubuntu16.04
 MAINTAINER Pierre Letessier <pletessier@ina.fr>
 
 RUN apt-get update && apt-get install -y software-properties-common
@@ -33,6 +33,9 @@ ENV PYTHONPATH $PYTHONPATH:/opt/faiss
 # RUN ./tests/test_blas && \
 #     tests/demo_ivfpq_indexing
 
+RUN ./tests/test_blas && \
+    tests/demo_ivfpq_indexing && \
+    gpu/test/demo_ivfpq_indexing_gpu
 
 # RUN wget ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz && \
 #     tar xf sift.tar.gz && \
