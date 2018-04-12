@@ -9,9 +9,11 @@
 # For Linux x86_64 with CUDA 9.1 and Python 3
 # tested on Ubuntu 16
 
-CC=g++
+CC=gcc
+CXX=g++
 
-CFLAGS=-fPIC -m64 -Wall -g -O3 -mavx -msse4 -mpopcnt -fopenmp -Wno-sign-compare -std=c++11 -fopenmp
+CFLAGS=-fPIC -m64 -Wall -g -O3 -mavx -msse4 -mpopcnt -fopenmp -Wno-sign-compare -fopenmp
+CXXFLAGS=$(CFLAGS) -std=c++11
 LDFLAGS=-g -fPIC  -fopenmp
 
 # common linux flags
@@ -122,10 +124,6 @@ PYTHONCFLAGS=-I/usr/include/python3.5/ -I/usr/lib64/python3.5/site-packages/nump
 # Cuda GPU flags
 ###########################################################################
 
-
-# a C++ compiler that supports c++11
-CC11=g++
-
 # root of the cuda 9.0 installation
 CUDAROOT=/usr/local/cuda-9.0/
 
@@ -140,7 +138,7 @@ NVCCFLAGS= $(CUDAFLAGS) \
    -gencode arch=compute_37,code="compute_37" \
    -gencode arch=compute_61,code="compute_61" \
    --std c++11 -lineinfo \
-   -ccbin $(CC11) -DFAISS_USE_FLOAT16
+   -ccbin $(CXX) -DFAISS_USE_FLOAT16
 
 # BLAS LD flags for nvcc (used to generate an executable)
 # if BLASLDFLAGS contains several flags, each one may
