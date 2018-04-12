@@ -14,8 +14,9 @@ all: run
 run: tests
 	./tests
 
-tests: $(TESTS) ../libfaiss.a gtest/make/gtest_main.a
-	$(CXX) -o $@ $^ $(LDFLAGS) $(LIBS)
+%: %.cpp  ../libfaiss.a gtest/make/gtest_main.a
+	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(BLASLDFLAGS) \
+	-Igtest/include -I../..
 
 %.o: %.cpp gtest
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CPUFLAGS) -c -o $@ $< -Igtest/include -I../..
