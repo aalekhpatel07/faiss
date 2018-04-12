@@ -18,10 +18,12 @@ ENV BLASLDFLAGS /usr/lib/libopenblas.so.0
 
 RUN mv example_makefiles/makefile.inc.Linux.cuda9.py3 ./makefile.inc
 
-RUN make tests/test_blas -j $(nproc) && \
-    make -j $(nproc) && \
-    make demos/demo_sift1M -j $(nproc) && \
+RUN make -j $(nproc) && \
     make py
+
+RUN cd tests && \
+    make test_blas -j $(nproc) && \
+    make test_ivfpq_indexing -j $(nproc)
 
 RUN cd gpu && \
     make -j $(nproc) && \
@@ -31,10 +33,10 @@ RUN cd gpu && \
 ENV PYTHONPATH $PYTHONPATH:/opt/faiss
 
 # RUN ./tests/test_blas && \
-#     tests/demo_ivfpq_indexing
+#     tests/test_ivfpq_indexing
 
 RUN ./tests/test_blas && \
-    tests/demo_ivfpq_indexing && \
+    tests/test_ivfpq_indexing && \
     gpu/test/demo_ivfpq_indexing_gpu
 
 # RUN wget ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz && \
