@@ -21,13 +21,12 @@ RUN mv example_makefiles/makefile.inc.Linux.cuda9.py3 ./makefile.inc
 RUN make -j $(nproc) && \
     make py
 
-RUN cd tests && \
-    make test_blas -j $(nproc) && \
-    make test_ivfpq_indexing -j $(nproc)
+#RUN cd tests && \
+#    make test_blas -j $(nproc) && \
+#    make test_ivfpq_indexing -j $(nproc)
 
 RUN cd gpu && \
     make -j $(nproc) && \
-    make test/demo_ivfpq_indexing_gpu && \
     make py
 
 ENV PYTHONPATH $PYTHONPATH:/opt/faiss
@@ -35,9 +34,9 @@ ENV PYTHONPATH $PYTHONPATH:/opt/faiss
 # RUN ./tests/test_blas && \
 #     tests/test_ivfpq_indexing
 
-RUN ./tests/test_blas && \
-    tests/test_ivfpq_indexing && \
-    gpu/test/demo_ivfpq_indexing_gpu
+#RUN ./tests/test_blas && \
+#    tests/test_ivfpq_indexing && \
+#    gpu/test/demo_ivfpq_indexing_gpu
 
 # RUN wget ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz && \
 #     tar xf sift.tar.gz && \
