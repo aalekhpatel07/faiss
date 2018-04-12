@@ -4,7 +4,7 @@ MAINTAINER Pierre Letessier <pletessier@ina.fr>
 RUN apt-get update && apt-get install -y software-properties-common
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test
 RUN apt-get update -y
-RUN apt-get install -y gcc-6 g++-6 libopenblas-dev python3-dev python3-numpy swig git python3-pip wget
+RUN apt-get install -y gcc-6 g++-6 libopenblas-dev python3-dev python3-numpy swig git python3-pip curl wget
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-6
 RUN gcc --version
 
