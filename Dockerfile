@@ -14,32 +14,16 @@ COPY . /opt/faiss
 
 WORKDIR /opt/faiss
 
-ENV BLASLDFLAGS /usr/lib/libopenblas.so.0
+ENV BLASLDFLAGS=/usr/lib/libopenblas.so.0
 
-RUN mv example_makefiles/makefile.inc.Linux.cuda9.py3 ./makefile.inc
-
-RUN make -j $(nproc) && \
-    make py
-
-#RUN cd tests && \
-#    make test_blas -j $(nproc) && \
-#    make test_ivfpq_indexing -j $(nproc)
-
-RUN cd gpu && \
+RUN ./configure && \
     make -j $(nproc) && \
-    make py
+    make test && \
+    make install
 
-ENV PYTHONPATH $PYTHONPATH:/opt/faiss
+RUN make -C gpu -j $(nproc) && \
+    make -C gpu/test
 
-# RUN ./tests/test_blas && \
-#     tests/test_ivfpq_indexing
-
-#RUN ./tests/test_blas && \
-#    tests/test_ivfpq_indexing && \
-#    gpu/test/demo_ivfpq_indexing_gpu
-
-# RUN wget ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz && \
-#     tar xf sift.tar.gz && \
-#     mv sift sift1M
-
-# RUN tests/demo_sift1M
+RUN make -C python gpu && \
+    make -C python build && \
+    make -C python install
