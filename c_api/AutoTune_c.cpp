@@ -18,13 +18,17 @@ using faiss::Index;
 using faiss::ParameterRange;
 using faiss::ParameterSpace;
 
-/** Build and index with the sequence of processing steps described in
- *  the string.
- */
 int faiss_index_factory(FaissIndex** p_index, int d, const char* description, FaissMetricType metric) {
     try {
         *p_index = reinterpret_cast<FaissIndex*>(faiss::index_factory(
             d, description, static_cast<faiss::MetricType>(metric)));
+    } CATCH_AND_HANDLE
+}
+
+int faiss_index_binary_factory(FaissIndexBinary** p_index, int d, const char* description) {
+    try {
+        *p_index = reinterpret_cast<FaissIndexBinary*>(
+            faiss::index_binary_factory(d, description));
     } CATCH_AND_HANDLE
 }
 

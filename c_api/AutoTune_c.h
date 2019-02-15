@@ -14,15 +14,21 @@
 
 #include "faiss_c.h"
 #include "Index_c.h"
+#include "IndexBinary_c.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** Build and index with the sequence of processing steps described in
+/** Build an index with the sequence of processing steps described in
  *  the string.
  */
 int faiss_index_factory(FaissIndex** p_index, int d, const char* description, FaissMetricType metric);
+
+/** Build a binary index with the sequence of processing steps described in
+ *  the string.
+ */
+int faiss_index_binary_factory(FaissIndexBinary** p_index, int d, const char *description);
 
 /// possible values of a parameter, sorted from least to most expensive/accurate
 FAISS_DECLARE_CLASS(ParameterRange)

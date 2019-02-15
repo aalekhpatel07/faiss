@@ -14,7 +14,8 @@ DEBUGFLAG=-DNDEBUG # no debugging
 LIBNAME=libfaiss
 CLIBNAME=libfaiss_c
 LIBCOBJ=error_impl.o Index_c.o IndexFlat_c.o Clustering_c.o AuxIndexStructures_c.o \
-	AutoTune_c.o IndexIVF_c.o IndexIVFFlat_c.o IndexLSH_c.o index_io_c.o MetaIndexes_c.o
+	AutoTune_c.o IndexIVF_c.o IndexIVFFlat_c.o IndexLSH_c.o index_io_c.o \
+	MetaIndexes_c.o IndexBinary_c.o IndexBinaryFlat_c.o
 
 # Build static and shared object files by default
 all: $(CLIBNAME).a $(CLIBNAME).$(SHAREDEXT)
@@ -47,6 +48,12 @@ index_io_c.o: index_io_c.cpp error_impl.cpp ../index_io.h macros_impl.h
 Index_c.o: CXXFLAGS += -I.. $(DEBUGFLAG)
 Index_c.o: Index_c.cpp Index_c.h ../Index.h macros_impl.h
 
+IndexBinary_c.o: CXXFLAGS += -I.. $(DEBUGFLAG)
+IndexBinary_c.o: IndexBinary_c.cpp IndexBinary_c.h Index_c.h ../IndexBinary.h macros_impl.h
+
+IndexBinaryFlat_c.o: CXXFLAGS += -I.. $(DEBUGFLAG)
+IndexBinaryFlat_c.o: IndexBinaryFlat_c.cpp IndexBinaryFlat_c.h IndexBinary_c.h ../IndexBinaryFlat.h macros_impl.h
+
 IndexFlat_c.o: CXXFLAGS += -I.. $(DEBUGFLAG)
 IndexFlat_c.o: IndexFlat_c.cpp IndexFlat_c.h ../IndexFlat.h macros_impl.h
 
@@ -63,7 +70,7 @@ Clustering_c.o: CXXFLAGS += -I.. $(DEBUGFLAG)
 Clustering_c.o: Clustering_c.cpp Clustering_c.h ../Clustering.h macros_impl.h
 
 AutoTune_c.o: CXXFLAGS += -I.. $(DEBUGFLAG)
-AutoTune_c.o: AutoTune_c.cpp AutoTune_c.h ../AutoTune.h macros_impl.h
+AutoTune_c.o: AutoTune_c.cpp AutoTune_c.h Index_c.h IndexBinary_c.h ../AutoTune.h macros_impl.h
 
 AuxIndexStructures_c.o: CXXFLAGS += -I.. $(DEBUGFLAG)
 AuxIndexStructures_c.o: AuxIndexStructures_c.cpp AuxIndexStructures_c.h ../AuxIndexStructures.h macros_impl.h
