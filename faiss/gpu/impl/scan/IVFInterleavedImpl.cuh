@@ -9,23 +9,24 @@
 
 #include <faiss/gpu/impl/IVFInterleaved.cuh>
 #include <faiss/gpu/utils/DeviceDefs.cuh>
+#include <faiss/gpu/utils/DeviceVector.cuh>
 
 #define IVF_INTERLEAVED_IMPL(THREADS, WARP_Q, THREAD_Q) \
                                                         \
     void ivfInterleavedScanImpl_##WARP_Q##_(            \
             Tensor<float, 2, true>& queries,            \
-            Tensor<int, 2, true>& listIds,              \
-            thrust::device_vector<void*>& listData,     \
-            thrust::device_vector<void*>& listIndices,  \
+            Tensor<idx_t, 2, true>& listIds,            \
+            DeviceVector<void*>& listData,              \
+            DeviceVector<void*>& listIndices,           \
             IndicesOptions indicesOptions,              \
-            thrust::device_vector<int>& listLengths,    \
+            DeviceVector<idx_t>& listLengths,           \
             int k,                                      \
             faiss::MetricType metric,                   \
             bool useResidual,                           \
             Tensor<float, 3, true>& residualBase,       \
             GpuScalarQuantizer* scalarQ,                \
             Tensor<float, 2, true>& outDistances,       \
-            Tensor<Index::idx_t, 2, true>& outIndices,  \
+            Tensor<idx_t, 2, true>& outIndices,         \
             GpuResources* res) {                        \
         FAISS_ASSERT(k <= WARP_Q);                      \
                                                         \
@@ -34,22 +35,22 @@
         CUDA_TEST_ERROR();                              \
     }
 
-#define IVF_INTERLEAVED_DECL(WARP_Q)                   \
-                                                       \
-    void ivfInterleavedScanImpl_##WARP_Q##_(           \
-            Tensor<float, 2, true>& queries,           \
-            Tensor<int, 2, true>& listIds,             \
-            thrust::device_vector<void*>& listData,    \
-            thrust::device_vector<void*>& listIndices, \
-            IndicesOptions indicesOptions,             \
-            thrust::device_vector<int>& listLengths,   \
-            int k,                                     \
-            faiss::MetricType metric,                  \
-            bool useResidual,                          \
-            Tensor<float, 3, true>& residualBase,      \
-            GpuScalarQuantizer* scalarQ,               \
-            Tensor<float, 2, true>& outDistances,      \
-            Tensor<Index::idx_t, 2, true>& outIndices, \
+#define IVF_INTERLEAVED_DECL(WARP_Q)              \
+                                                  \
+    void ivfInterleavedScanImpl_##WARP_Q##_(      \
+            Tensor<float, 2, true>& queries,      \
+            Tensor<idx_t, 2, true>& listIds,      \
+            DeviceVector<void*>& listData,        \
+            DeviceVector<void*>& listIndices,     \
+            IndicesOptions indicesOptions,        \
+            DeviceVector<idx_t>& listLengths,     \
+            int k,                                \
+            faiss::MetricType metric,             \
+            bool useResidual,                     \
+            Tensor<float, 3, true>& residualBase, \
+            GpuScalarQuantizer* scalarQ,          \
+            Tensor<float, 2, true>& outDistances, \
+            Tensor<idx_t, 2, true>& outIndices,   \
             GpuResources* res)
 
 #define IVF_INTERLEAVED_CALL(WARP_Q)    \

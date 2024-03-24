@@ -9,7 +9,7 @@
 
 #include <faiss/Index.h>
 #include <faiss/gpu/GpuIndicesOptions.h>
-#include <thrust/device_vector.h>
+#include <faiss/gpu/utils/DeviceVector.cuh>
 #include <faiss/gpu/utils/Tensor.cuh>
 
 // A collection of utility functions for IVFPQ and IVFFlat, for
@@ -23,36 +23,38 @@ class GpuResources;
 /// intermediate results for all (query, probe) pair
 void runCalcListOffsets(
         GpuResources* res,
-        Tensor<int, 2, true>& topQueryToCentroid,
-        thrust::device_vector<int>& listLengths,
-        Tensor<int, 2, true>& prefixSumOffsets,
+        Tensor<idx_t, 2, true>& ivfListIds,
+        DeviceVector<idx_t>& listLengths,
+        Tensor<idx_t, 2, true>& prefixSumOffsets,
         Tensor<char, 1, true>& thrustMem,
         cudaStream_t stream);
 
 /// Performs a first pass of k-selection on the results
 void runPass1SelectLists(
-        Tensor<int, 2, true>& prefixSumOffsets,
+        Tensor<idx_t, 2, true>& prefixSumOffsets,
         Tensor<float, 1, true>& distance,
         int nprobe,
         int k,
+        bool use64BitSelection,
         bool chooseLargest,
         Tensor<float, 3, true>& heapDistances,
-        Tensor<int, 3, true>& heapIndices,
+        Tensor<idx_t, 3, true>& heapIndices,
         cudaStream_t stream);
 
 /// Performs a final pass of k-selection on the results, producing the
 /// final indices
 void runPass2SelectLists(
         Tensor<float, 2, true>& heapDistances,
-        Tensor<int, 2, true>& heapIndices,
-        thrust::device_vector<void*>& listIndices,
+        Tensor<idx_t, 2, true>& heapIndices,
+        DeviceVector<void*>& listIndices,
         IndicesOptions indicesOptions,
-        Tensor<int, 2, true>& prefixSumOffsets,
-        Tensor<int, 2, true>& topQueryToCentroid,
+        Tensor<idx_t, 2, true>& prefixSumOffsets,
+        Tensor<idx_t, 2, true>& ivfListIds,
         int k,
+        bool use64BitSelection,
         bool chooseLargest,
         Tensor<float, 2, true>& outDistances,
-        Tensor<Index::idx_t, 2, true>& outIndices,
+        Tensor<idx_t, 2, true>& outIndices,
         cudaStream_t stream);
 
 } // namespace gpu

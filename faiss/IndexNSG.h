@@ -13,6 +13,8 @@
 
 #include <faiss/IndexFlat.h>
 #include <faiss/IndexNNDescent.h>
+#include <faiss/IndexPQ.h>
+#include <faiss/IndexScalarQuantizer.h>
 #include <faiss/impl/NSG.h>
 #include <faiss/utils/utils.h>
 
@@ -64,7 +66,8 @@ struct IndexNSG : Index {
             const float* x,
             idx_t k,
             float* distances,
-            idx_t* labels) const override;
+            idx_t* labels,
+            const SearchParameters* params = nullptr) const override;
 
     void reconstruct(idx_t key, float* recons) const override;
 
@@ -80,6 +83,27 @@ struct IndexNSG : Index {
 struct IndexNSGFlat : IndexNSG {
     IndexNSGFlat();
     IndexNSGFlat(int d, int R, MetricType metric = METRIC_L2);
+};
+
+/** PQ index topped with with a NSG structure to access elements
+ *  more efficiently.
+ */
+struct IndexNSGPQ : IndexNSG {
+    IndexNSGPQ();
+    IndexNSGPQ(int d, int pq_m, int M);
+    void train(idx_t n, const float* x) override;
+};
+
+/** SQ index topped with with a NSG structure to access elements
+ *  more efficiently.
+ */
+struct IndexNSGSQ : IndexNSG {
+    IndexNSGSQ();
+    IndexNSGSQ(
+            int d,
+            ScalarQuantizer::QuantizerType qtype,
+            int M,
+            MetricType metric = METRIC_L2);
 };
 
 } // namespace faiss

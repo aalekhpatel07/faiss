@@ -45,7 +45,8 @@ struct GpuDistanceParams {
               outDistances(nullptr),
               ignoreOutDistances(false),
               outIndicesType(IndicesDataType::I64),
-              outIndices(nullptr) {}
+              outIndices(nullptr),
+              device(-1) {}
 
     //
     // Search parameters
@@ -76,7 +77,7 @@ struct GpuDistanceParams {
     const void* vectors;
     DistanceDataType vectorType;
     bool vectorsRowMajor;
-    int numVectors;
+    idx_t numVectors;
 
     /// Precomputed L2 norms for each vector in `vectors`, which can be
     /// optionally provided in advance to speed computation for METRIC_L2
@@ -93,7 +94,7 @@ struct GpuDistanceParams {
     const void* queries;
     DistanceDataType queryType;
     bool queriesRowMajor;
-    int numQueries;
+    idx_t numQueries;
 
     //
     // Output results
@@ -112,6 +113,17 @@ struct GpuDistanceParams {
     /// innermost (row major). Not used if k == -1 (all pairwise distances)
     IndicesDataType outIndicesType;
     void* outIndices;
+
+    //
+    // Execution information
+    //
+
+    /// On which GPU device should the search run?
+    /// -1 indicates that the current CUDA thread-local device
+    /// (via cudaGetDevice/cudaSetDevice) is used
+    /// Otherwise, an integer 0 <= device < numDevices indicates the device for
+    /// execution
+    int device;
 };
 
 /// A wrapper for gpu/impl/Distance.cuh to expose direct brute-force k-nearest
@@ -137,13 +149,13 @@ void bruteForceKnn(
         // dims x numVectors, with numVectors innermost
         const float* vectors,
         bool vectorsRowMajor,
-        int numVectors,
+        idx_t numVectors,
         // If queriesRowMajor is true, this is
         // numQueries x dims, with dims innermost; otherwise,
         // dims x numQueries, with numQueries innermost
         const float* queries,
         bool queriesRowMajor,
-        int numQueries,
+        idx_t numQueries,
         int dims,
         int k,
         // A region of memory size numQueries x k, with k
@@ -151,7 +163,7 @@ void bruteForceKnn(
         float* outDistances,
         // A region of memory size numQueries x k, with k
         // innermost (row major)
-        Index::idx_t* outIndices);
+        idx_t* outIndices);
 
 } // namespace gpu
 } // namespace faiss

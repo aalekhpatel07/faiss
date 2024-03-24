@@ -37,7 +37,8 @@ void testTransposition(
     std::vector<float> vecs = randVecs(numVecs, dim);
     std::vector<float> queries = randVecs(numQuery, dim);
 
-    if (metric == faiss::MetricType::METRIC_JensenShannon) {
+    if ((metric == faiss::MetricType::METRIC_JensenShannon) ||
+        (metric == faiss::MetricType::METRIC_Jaccard)) {
         // make values positive
         for (auto& v : vecs) {
             v = std::abs(v);
@@ -60,7 +61,7 @@ void testTransposition(
     cpuIndex.add(numVecs, vecs.data());
 
     std::vector<float> cpuDistance(numQuery * k, 0);
-    std::vector<faiss::Index::idx_t> cpuIndices(numQuery * k, -1);
+    std::vector<faiss::idx_t> cpuIndices(numQuery * k, -1);
 
     cpuIndex.search(
             numQuery, queries.data(), k, cpuDistance.data(), cpuIndices.data());
@@ -97,7 +98,7 @@ void testTransposition(
     runTransposeAny(gpuQueries, 0, 1, queriesT, stream);
 
     std::vector<float> gpuDistance(numQuery * k, 0);
-    std::vector<faiss::Index::idx_t> gpuIndices(numQuery * k, -1);
+    std::vector<faiss::idx_t> gpuIndices(numQuery * k, -1);
 
     GpuDistanceParams args;
     args.metric = metric;
@@ -112,6 +113,7 @@ void testTransposition(
     args.numQueries = numQuery;
     args.outDistances = gpuDistance.data();
     args.outIndices = gpuIndices.data();
+    args.device = device;
 
     bfKnn(&res, args);
 
@@ -189,6 +191,10 @@ TEST(TestGpuDistance, BrayCurtis) {
 
 TEST(TestGpuDistance, JensenShannon) {
     testTransposition(false, false, faiss::MetricType::METRIC_JensenShannon);
+}
+
+TEST(TestGpuDistance, Jaccard) {
+    testTransposition(false, false, faiss::MetricType::METRIC_Jaccard);
 }
 
 int main(int argc, char** argv) {

@@ -13,6 +13,8 @@
 #include <faiss/Clustering.h>
 #include <faiss/impl/AdditiveQuantizer.h>
 
+#include <faiss/utils/approx_topk/mode.h>
+
 namespace faiss {
 
 /** Residual quantizer with variable number of bits per sub-quantizer
@@ -24,42 +26,48 @@ namespace faiss {
 
 struct ResidualQuantizer : AdditiveQuantizer {
     /// initialization
-    enum train_type_t {
-        Train_default = 0,         ///< regular k-means
-        Train_progressive_dim = 1, ///< progressive dim clustering
-        Train_default_Train_top_beam = 1024,
-        Train_progressive_dim_Train_top_beam = 1025,
-        Train_default_Skip_codebook_tables = 2048,
-        Train_progressive_dim_Skip_codebook_tables = 2049,
-        Train_default_Train_top_beam_Skip_codebook_tables = 3072,
-        Train_progressive_dim_Train_top_beam_Skip_codebook_tables = 3073,
-    };
 
-    train_type_t train_type;
+    //  Was enum but that does not work so well with bitmasks
+    using train_type_t = int;
 
-    // set this bit on train_type if beam is to be trained only on the
-    // first element of the beam (faster but less accurate)
+    /// Binary or of the Train_* flags below
+    train_type_t train_type = Train_progressive_dim;
+
+    /// regular k-means (minimal amount of computation)
+    static const int Train_default = 0;
+
+    /// progressive dim clustering (set by default)
+    static const int Train_progressive_dim = 1;
+
+    /// do a few iterations of codebook refinement after first level estimation
+    static const int Train_refine_codebook = 2;
+
+    /// number of iterations for codebook refinement.
+    int niter_codebook_refine = 5;
+
+    /** set this bit on train_type if beam is to be trained only on the
+     *  first element of the beam (faster but less accurate) */
     static const int Train_top_beam = 1024;
 
-    // set this bit to not autmatically compute the codebook tables
-    // after training
+    /** set this bit to *not* autmatically compute the codebook tables
+     * after training */
     static const int Skip_codebook_tables = 2048;
 
     /// beam size used for training and for encoding
-    int max_beam_size;
+    int max_beam_size = 5;
 
     /// use LUT for beam search
-    int use_beam_LUT;
+    int use_beam_LUT = 0;
 
-    /// distance matrixes with beam search can get large, so use this
-    /// to batch computations at encoding time.
-    size_t max_mem_distances;
+    /// Currently used mode of approximate min-k computations.
+    /// Default value is EXACT_TOPK.
+    ApproxTopK_mode_t approx_topk_mode = ApproxTopK_mode_t::EXACT_TOPK;
 
     /// clustering parameters
     ProgressiveDimClusteringParameters cp;
 
     /// if non-NULL, use this index for assignment
-    ProgressiveDimIndexFactory* assign_index_factory;
+    ProgressiveDimIndexFactory* assign_index_factory = nullptr;
 
     ResidualQuantizer(
             size_t d,
@@ -74,15 +82,33 @@ struct ResidualQuantizer : AdditiveQuantizer {
 
     ResidualQuantizer();
 
-    // Train the residual quantizer
+    /// Train the residual quantizer
     void train(size_t n, const float* x) override;
+
+    /// Copy the M codebook levels from other, starting from skip_M
+    void initialize_from(const ResidualQuantizer& other, int skip_M = 0);
+
+    /** Encode the vectors and compute codebook that minimizes the quantization
+     * error on these codes
+     *
+     * @param x      training vectors, size n * d
+     * @param n      nb of training vectors, n >= total_codebook_size
+     * @return       returns quantization error for the new codebook with old
+     * codes
+     */
+    float retrain_AQ_codebook(size_t n, const float* x);
 
     /** Encode a set of vectors
      *
      * @param x      vectors to encode, size n * d
      * @param codes  output codes, size n * code_size
+     * @param centroids  centroids to be added to x, size n * d
      */
-    void compute_codes(const float* x, uint8_t* codes, size_t n) const override;
+    void compute_codes_add_centroids(
+            const float* x,
+            uint8_t* codes,
+            size_t n,
+            const float* centroids = nullptr) const override;
 
     /** lower-level encode function
      *
@@ -163,7 +189,8 @@ void beam_search_encode_step(
         int32_t* new_codes,
         float* new_residuals,
         float* new_distances,
-        Index* assign_index = nullptr);
+        Index* assign_index = nullptr,
+        ApproxTopK_mode_t approx_topk = ApproxTopK_mode_t::EXACT_TOPK);
 
 /** Encode a set of vectors using their dot products with the codebooks
  *
@@ -182,7 +209,8 @@ void beam_search_encode_step_tab(
         const int32_t* codes,   // n * beam_size * m
         const float* distances, // n * beam_size
         size_t new_beam_size,
-        int32_t* new_codes,    // n * new_beam_size * (m + 1)
-        float* new_distances); // n * new_beam_size
+        int32_t* new_codes,   // n * new_beam_size * (m + 1)
+        float* new_distances, // n * new_beam_size
+        ApproxTopK_mode_t approx_topk = ApproxTopK_mode_t::EXACT_TOPK);
 
 }; // namespace faiss

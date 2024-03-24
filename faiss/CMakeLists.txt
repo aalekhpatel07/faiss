@@ -20,10 +20,13 @@ set(FAISS_SRC
   IndexFlat.cpp
   IndexFlatCodes.cpp
   IndexHNSW.cpp
+  IndexIDMap.cpp
   IndexIVF.cpp
   IndexIVFAdditiveQuantizer.cpp
   IndexIVFFlat.cpp
   IndexIVFPQ.cpp
+  IndexIVFFastScan.cpp
+  IndexIVFAdditiveQuantizerFastScan.cpp
   IndexIVFPQFastScan.cpp
   IndexIVFPQR.cpp
   IndexIVFSpectralHash.cpp
@@ -32,18 +35,24 @@ set(FAISS_SRC
   IndexLattice.cpp
   IndexNSG.cpp
   IndexPQ.cpp
+  IndexFastScan.cpp
+  IndexAdditiveQuantizerFastScan.cpp
   IndexPQFastScan.cpp
   IndexPreTransform.cpp
   IndexRefine.cpp
   IndexReplicas.cpp
+  IndexRowwiseMinMax.cpp
   IndexScalarQuantizer.cpp
   IndexShards.cpp
+  IndexShardsIVF.cpp
   MatrixStats.cpp
   MetaIndexes.cpp
   VectorTransform.cpp
   clone_index.cpp
   index_factory.cpp
   impl/AuxIndexStructures.cpp
+  impl/CodePacker.cpp
+  impl/IDSelector.cpp
   impl/FaissException.cpp
   impl/HNSW.cpp
   impl/NSG.cpp
@@ -52,6 +61,7 @@ set(FAISS_SRC
   impl/AdditiveQuantizer.cpp
   impl/ResidualQuantizer.cpp
   impl/LocalSearchQuantizer.cpp
+  impl/ProductAdditiveQuantizer.cpp
   impl/ScalarQuantizer.cpp
   impl/index_read.cpp
   impl/index_write.cpp
@@ -77,7 +87,11 @@ set(FAISS_SRC
   utils/partitioning.cpp
   utils/quantize_lut.cpp
   utils/random.cpp
+  utils/sorting.cpp
   utils/utils.cpp
+  utils/distances_fused/avx512.cpp
+  utils/distances_fused/distances_fused.cpp
+  utils/distances_fused/simdlib_based.cpp
 )
 
 set(FAISS_HEADERS
@@ -96,10 +110,13 @@ set(FAISS_HEADERS
   IndexFlat.h
   IndexFlatCodes.h
   IndexHNSW.h
+  IndexIDMap.h
   IndexIVF.h
   IndexIVFAdditiveQuantizer.h
   IndexIVFFlat.h
   IndexIVFPQ.h
+  IndexIVFFastScan.h
+  IndexIVFAdditiveQuantizerFastScan.h
   IndexIVFPQFastScan.h
   IndexIVFPQR.h
   IndexIVFSpectralHash.h
@@ -108,13 +125,16 @@ set(FAISS_HEADERS
   IndexNNDescent.h
   IndexNSG.h
   IndexPQ.h
+  IndexFastScan.h
+  IndexAdditiveQuantizerFastScan.h
   IndexPQFastScan.h
   IndexPreTransform.h
   IndexRefine.h
   IndexReplicas.h
-  IndexAdditiveQuantizer.h
+  IndexRowwiseMinMax.h
   IndexScalarQuantizer.h
   IndexShards.h
+  IndexShardsIVF.h
   MatrixStats.h
   MetaIndexes.h
   MetricType.h
@@ -124,15 +144,20 @@ set(FAISS_HEADERS
   index_io.h
   impl/AdditiveQuantizer.h
   impl/AuxIndexStructures.h
+  impl/IDSelector.h
+  impl/DistanceComputer.h
   impl/FaissAssert.h
   impl/FaissException.h
   impl/HNSW.h
   impl/LocalSearchQuantizer.h
+  impl/ProductAdditiveQuantizer.h
+  impl/LookupTableScaler.h
   impl/NNDescent.h
   impl/NSG.h
   impl/PolysemousTraining.h
   impl/ProductQuantizer-inl.h
   impl/ProductQuantizer.h
+  impl/Quantizer.h
   impl/ResidualQuantizer.h
   impl/ResultHandler.h
   impl/ScalarQuantizer.h
@@ -145,6 +170,9 @@ set(FAISS_HEADERS
   impl/platform_macros.h
   impl/pq4_fast_scan.h
   impl/simd_result_handlers.h
+  impl/code_distance/code_distance.h
+  impl/code_distance/code_distance-generic.h
+  impl/code_distance/code_distance-avx2.h
   invlists/BlockInvertedLists.h
   invlists/DirectMap.h
   invlists/InvertedLists.h
@@ -155,6 +183,9 @@ set(FAISS_HEADERS
   utils/distances.h
   utils/extra_distances-inl.h
   utils/extra_distances.h
+  utils/fp16-fp16c.h
+  utils/fp16-inl.h
+  utils/fp16.h
   utils/hamming-inl.h
   utils/hamming.h
   utils/ordered_key_value.h
@@ -166,6 +197,20 @@ set(FAISS_HEADERS
   utils/simdlib_emulated.h
   utils/simdlib_neon.h
   utils/utils.h
+  utils/distances_fused/avx512.h
+  utils/distances_fused/distances_fused.h
+  utils/distances_fused/simdlib_based.h
+  utils/approx_topk/approx_topk.h
+  utils/approx_topk/avx2-inl.h
+  utils/approx_topk/generic.h
+  utils/approx_topk/mode.h
+  utils/approx_topk_hamming/approx_topk_hamming.h
+  utils/transpose/transpose-avx2-inl.h
+  utils/hamming_distance/common.h
+  utils/hamming_distance/generic-inl.h
+  utils/hamming_distance/hamdis-inl.h
+  utils/hamming_distance/neon-inl.h
+  utils/hamming_distance/avx2-inl.h
 )
 
 if(NOT WIN32)
@@ -190,6 +235,8 @@ else()
   # Ref. F16C (2nd paragraph): https://walbourn.github.io/directxmath-avx2/
   # Ref. POPCNT: https://docs.microsoft.com/en-us/cpp/intrinsics/popcnt16-popcnt-popcnt64
   target_compile_options(faiss_avx2 PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/arch:AVX2>)
+  # we need bigobj for the swig wrapper
+  add_compile_options(/bigobj)
 endif()
 
 # Handle `#include <faiss/foo.h>`.

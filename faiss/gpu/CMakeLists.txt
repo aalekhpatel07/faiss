@@ -7,7 +7,6 @@
 set(FAISS_GPU_SRC
   GpuAutoTune.cpp
   GpuCloner.cpp
-  GpuClonerOptions.cpp
   GpuDistance.cu
   GpuIcmEncoder.cu
   GpuIndex.cu
@@ -24,6 +23,7 @@ set(FAISS_GPU_SRC
   impl/BroadcastSum.cu
   impl/Distance.cu
   impl/FlatIndex.cu
+  impl/IndexUtils.cu
   impl/IVFAppend.cu
   impl/IVFBase.cu
   impl/IVFFlat.cu
@@ -102,6 +102,7 @@ set(FAISS_GPU_HEADERS
   impl/FlatIndex.cuh
   impl/GeneralDistance.cuh
   impl/GpuScalarQuantizer.cuh
+  impl/IndexUtils.h
   impl/IVFAppend.cuh
   impl/IVFBase.cuh
   impl/IVFFlat.cuh
@@ -152,7 +153,7 @@ set(FAISS_GPU_HEADERS
   utils/StaticUtils.h
   utils/Tensor-inl.cuh
   utils/Tensor.cuh
-  utils/ThrustAllocator.cuh
+  utils/ThrustUtils.cuh
   utils/Timer.h
   utils/Transpose.cuh
   utils/WarpPackedBits.cuh

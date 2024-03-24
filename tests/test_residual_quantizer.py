@@ -15,6 +15,7 @@ from faiss.contrib.inspect_tools import get_additive_quantizer_codebooks
 # Reference implementation of encoding with beam search
 ###########################################################
 
+faiss.omp_set_num_threads(4)
 
 def pairwise_distances(a, b):
     anorms = (a ** 2).sum(1)
@@ -258,10 +259,98 @@ class TestResidualQuantizer(unittest.TestCase):
         for c0, c1 in zip(cb0, cb1):
             self.assertTrue(np.all(c0 == c1))
 
+    def test_clipping(self):
+        """ verify that a clipped residual quantizer gives the same
+        code prefix + suffix as the full RQ """
+        ds = datasets.SyntheticDataset(32, 1000, 100, 0)
+
+        rq = faiss.ResidualQuantizer(ds.d, 5, 4)
+        rq.train_type = faiss.ResidualQuantizer.Train_default
+        rq.max_beam_size = 5
+        rq.train(ds.get_train())
+
+        rq.max_beam_size = 1   # is not he same for a large beam size
+        codes = rq.compute_codes(ds.get_database())
+
+        rq2 = faiss.ResidualQuantizer(ds.d, 2, 4)
+        rq2.initialize_from(rq)
+        self.assertEqual(rq2.M, 2)
+        # verify that the beginning of the codes are the same
+        codes2 = rq2.compute_codes(ds.get_database())
+
+        rq3 = faiss.ResidualQuantizer(ds.d, 3, 4)
+        rq3.initialize_from(rq, 2)
+        self.assertEqual(rq3.M, 3)
+        codes3 = rq3.compute_codes(ds.get_database() - rq2.decode(codes2))
+
+        # verify that prefixes are the same
+        for i in range(ds.nb):
+            print(i, ds.nb)
+            br = faiss.BitstringReader(faiss.swig_ptr(codes[i]), rq.code_size)
+            br2 = faiss.BitstringReader(faiss.swig_ptr(codes2[i]), rq2.code_size)
+            self.assertEqual(br.read(rq2.tot_bits), br2.read(rq2.tot_bits))
+            br3 = faiss.BitstringReader(faiss.swig_ptr(codes3[i]), rq3.code_size)
+            self.assertEqual(br.read(rq3.tot_bits), br3.read(rq3.tot_bits))
 
 ###########################################################
 # Test index, index factory sa_encode / sa_decode
 ###########################################################
+
+def unpack_codes(rq, packed_codes):
+    nbits = faiss.vector_to_array(rq.nbits)
+    if np.all(nbits == 8):
+        return packed_codes.astype("uint32")
+    nbits = [int(x) for x in nbits]
+    nb = len(nbits)
+    n, code_size = packed_codes.shape
+    codes = np.zeros((n, nb), dtype="uint32")
+    for i in range(n):
+        br = faiss.BitstringReader(faiss.swig_ptr(packed_codes[i]), code_size)
+        for j, nbi in enumerate(nbits):
+            codes[i, j] = br.read(nbi)
+    return codes
+
+def retrain_AQ_codebook(index, xt):
+    """ reference implementation of codebook retraining """
+    rq = index.rq
+
+    codes_packed = index.sa_encode(xt)
+    n, code_size = codes_packed.shape
+
+    x_decoded = index.sa_decode(codes_packed)
+    MSE = ((xt - x_decoded) ** 2).sum() / n
+    print(f"Initial MSE on training set: {MSE:g}")
+
+    codes = unpack_codes(index.rq, codes_packed)
+    print("ref codes", codes[0])
+    codebook_offsets = faiss.vector_to_array(rq.codebook_offsets)
+
+    # build sparse code matrix (represented as a dense matrix)
+    C = np.zeros((n, rq.total_codebook_size))
+
+    for i in range(n):
+        C[i][codes[i] + codebook_offsets[:-1]] = 1
+
+    # import pdb; pdb.set_trace()
+    # import scipy
+    # B, residuals, rank, singvals = np.linalg.lstsq(C, xt, rcond=None)
+    if True:
+        B, residuals, rank, singvals = np.linalg.lstsq(C, xt, rcond=None)
+    else:
+        import scipy.linalg
+        import pdb; pdb.set_trace()
+        B, residuals, rank, singvals = scipy.linalg.lstsq(C, xt, )
+
+    MSE = ((C @ B - xt) ** 2).sum() / n
+    print(f"MSE after retrainining: {MSE:g}")
+
+    # replace codebook
+    # faiss.copy_array_to_vector(B.astype('float32').ravel(), index.rq.codebooks)
+    # update codebook tables
+    # index.rq.compute_codebook_tables()
+
+    return C, B
+
 
 class TestIndexResidualQuantizer(unittest.TestCase):
 
@@ -371,6 +460,55 @@ class TestIndexResidualQuantizer(unittest.TestCase):
         }
         # recalls are {1: 0.05, 10: 0.37, 100: 0.37}
         self.assertGreater(recalls[10], 0.35)
+
+    def test_reestimate_codebook(self):
+        ds = datasets.SyntheticDataset(32, 1000, 1000, 100)
+
+        xt = ds.get_train()
+        xb = ds.get_database()
+
+        ir = faiss.IndexResidualQuantizer(ds.d, 3, 4)
+        ir.train(xt)
+
+        # ir.rq.verbose = True
+        xb_decoded = ir.sa_decode(ir.sa_encode(xb))
+        err_before = ((xb - xb_decoded) ** 2).sum()
+
+        # test manual call of retrain_AQ_codebook
+
+        ref_C, ref_codebook = retrain_AQ_codebook(ir, xb)
+        ir.rq.retrain_AQ_codebook(len(xb), faiss.swig_ptr(xb))
+
+        xb_decoded = ir.sa_decode(ir.sa_encode(xb))
+        err_after = ((xb - xb_decoded) ** 2).sum()
+
+        # ref run: 8347.857 vs. 7710.014
+        self.assertGreater(err_before, err_after * 1.05)
+
+    def test_reestimate_codebook_2(self):
+        ds = datasets.SyntheticDataset(32, 1000, 0, 0)
+        xt = ds.get_train()
+
+        ir = faiss.IndexResidualQuantizer(ds.d, 3, 4)
+        ir.rq.train_type = 0
+        ir.train(xt)
+
+        xt_decoded = ir.sa_decode(ir.sa_encode(xt))
+        err_before = ((xt - xt_decoded) ** 2).sum()
+
+        ir = faiss.IndexResidualQuantizer(ds.d, 3, 4)
+        ir.rq.train_type = faiss.ResidualQuantizer.Train_refine_codebook
+        ir.train(xt)
+
+        xt_decoded = ir.sa_decode(ir.sa_encode(xt))
+        err_after_refined = ((xt - xt_decoded) ** 2).sum()
+
+        print(err_before, err_after_refined)
+        # ref run 7474.98 / 7006.1777
+        self.assertGreater(err_before, err_after_refined * 1.06)
+
+
+
 
 
 ###########################################################
@@ -505,6 +643,17 @@ class TestIVFResidualCoarseQuantizer(unittest.TestCase):
         np.testing.assert_array_almost_equal(CDref, CDnew, decimal=5)
         np.testing.assert_array_equal(CIref, CInew)
 
+    def test_norms_oom(self):
+        "check if allocating too large norms tables raises an exception"
+        index = faiss.index_factory(32, "RQ20x8")
+        try:
+            index.train(np.zeros((100, 32), dtype="float32"))
+        except RuntimeError:
+            pass # ok
+        else:
+            self.assertFalse()
+
+
 ###########################################################
 # Test search with LUTs
 ###########################################################
@@ -631,7 +780,7 @@ class TestIndexResidualQuantizerSearch(unittest.TestCase):
                 self.assertLess((Iref != I2).sum(), Iref.size * 0.05)
             else:
                 inter_2 = faiss.eval_intersection(I2, gt)
-                self.assertGreater(inter_ref, inter_2)
+                self.assertGreaterEqual(inter_ref, inter_2)
                 # print(st, inter_ref, inter_2)
 
 
@@ -993,3 +1142,147 @@ class TestCrossCodebookComputations(unittest.TestCase):
         rq.use_beam_LUT = 1
         codes_new = rq.compute_codes(xb)
         np.testing.assert_array_equal(codes_ref_residuals, codes_new)
+
+
+class TestProductResidualQuantizer(unittest.TestCase):
+
+    def test_codec(self):
+        """check that the error is in the same ballpark as PQ."""
+        ds = datasets.SyntheticDataset(64, 3000, 3000, 0)
+
+        xt = ds.get_train()
+        xb = ds.get_database()
+
+        nsplits = 2
+        Msub = 2
+        nbits = 4
+
+        prq = faiss.ProductResidualQuantizer(ds.d, nsplits, Msub, nbits)
+        prq.train(xt)
+        err_prq = eval_codec(prq, xb)
+
+        pq = faiss.ProductQuantizer(ds.d, nsplits * Msub, nbits)
+        pq.train(xt)
+        err_pq = eval_codec(pq, xb)
+
+        print(err_prq, err_pq)
+        self.assertLess(err_prq, err_pq)
+
+    def test_with_rq(self):
+        """compare with RQ when nsplits = 1"""
+        ds = datasets.SyntheticDataset(32, 3000, 3000, 0)
+
+        xt = ds.get_train()
+        xb = ds.get_database()
+
+        M = 4
+        nbits = 4
+
+        prq = faiss.ProductResidualQuantizer(ds.d, 1, M, nbits)
+        prq.train(xt)
+        err_prq = eval_codec(prq, xb)
+
+        rq = faiss.ResidualQuantizer(ds.d, M, nbits)
+        rq.train(xt)
+        err_rq = eval_codec(rq, xb)
+
+        print(err_prq, err_rq)
+        self.assertEqual(err_prq, err_rq)
+
+
+class TestIndexProductResidualQuantizer(unittest.TestCase):
+
+    def test_accuracy1(self):
+        """check that the error is in the same ballpark as RQ."""
+        recall1 = self.eval_index_accuracy("PRQ4x3x5_Nqint8")
+        recall2 = self.eval_index_accuracy("RQ12x5_Nqint8")
+        self.assertGreaterEqual(recall1 * 1.1, recall2)  # 657 vs 665
+
+    def test_accuracy2(self):
+        """when nsplits = 1, PRQ should be the same as RQ"""
+        recall1 = self.eval_index_accuracy("PRQ1x3x5_Nqint8")
+        recall2 = self.eval_index_accuracy("RQ3x5_Nqint8")
+        self.assertEqual(recall1, recall2)
+
+    def eval_index_accuracy(self, index_key):
+        ds = datasets.SyntheticDataset(32, 1000, 1000, 100)
+        index = faiss.index_factory(ds.d, index_key)
+
+        index.train(ds.get_train())
+        index.add(ds.get_database())
+        D, I = index.search(ds.get_queries(), 10)
+        inter = faiss.eval_intersection(I, ds.get_groundtruth(10))
+
+        # do a little I/O test
+        index2 = faiss.deserialize_index(faiss.serialize_index(index))
+        D2, I2 = index2.search(ds.get_queries(), 10)
+        np.testing.assert_array_equal(I2, I)
+        np.testing.assert_array_equal(D2, D)
+
+        return inter
+
+    def test_factory(self):
+        AQ = faiss.AdditiveQuantizer
+        ns, Msub, nbits = 2, 4, 8
+        index = faiss.index_factory(64, f"PRQ{ns}x{Msub}x{nbits}_Nqint8")
+        assert isinstance(index, faiss.IndexProductResidualQuantizer)
+        self.assertEqual(index.prq.nsplits, ns)
+        self.assertEqual(index.prq.subquantizer(0).M, Msub)
+        self.assertEqual(index.prq.subquantizer(0).nbits.at(0), nbits)
+        self.assertEqual(index.prq.search_type, AQ.ST_norm_qint8)
+
+        code_size = (ns * Msub * nbits + 7) // 8 + 1
+        self.assertEqual(index.prq.code_size, code_size)
+
+
+class TestIndexIVFProductResidualQuantizer(unittest.TestCase):
+
+    def eval_index_accuracy(self, factory_key):
+        ds = datasets.SyntheticDataset(32, 1000, 1000, 100)
+        index = faiss.index_factory(ds.d, factory_key)
+
+        index.train(ds.get_train())
+        index.add(ds.get_database())
+
+        inters = []
+        for nprobe in 1, 2, 5, 10, 20, 50:
+            index.nprobe = nprobe
+            D, I = index.search(ds.get_queries(), 10)
+            inter = faiss.eval_intersection(I, ds.get_groundtruth(10))
+            inters.append(inter)
+
+        inters = np.array(inters)
+        # 1.05: test relaxed for OSX on ARM
+        self.assertTrue(np.all(inters[1:] * 1.05 >= inters[:-1]))
+
+        # do a little I/O test
+        index2 = faiss.deserialize_index(faiss.serialize_index(index))
+        D2, I2 = index2.search(ds.get_queries(), 10)
+        np.testing.assert_array_equal(I2, I)
+        np.testing.assert_array_equal(D2, D)
+
+        return inter
+
+    def test_index_accuracy(self):
+        self.eval_index_accuracy("IVF100,PRQ2x2x5_Nqint8")
+
+    def test_index_accuracy2(self):
+        """check that the error is in the same ballpark as RQ."""
+        inter1 = self.eval_index_accuracy("IVF100,PRQ2x2x5_Nqint8")
+        inter2 = self.eval_index_accuracy("IVF100,RQ4x5_Nqint8")
+        # print(inter1, inter2)  # 392 vs 374
+        self.assertGreaterEqual(inter1 * 1.1, inter2)
+
+    def test_factory(self):
+        AQ = faiss.AdditiveQuantizer
+        ns, Msub, nbits = 2, 4, 8
+        index = faiss.index_factory(64, f"IVF100,PRQ{ns}x{Msub}x{nbits}_Nqint8")
+        assert isinstance(index, faiss.IndexIVFProductResidualQuantizer)
+        self.assertEqual(index.nlist, 100)
+        self.assertEqual(index.prq.nsplits, ns)
+        self.assertEqual(index.prq.subquantizer(0).M, Msub)
+        self.assertEqual(index.prq.subquantizer(0).nbits.at(0), nbits)
+        self.assertEqual(index.prq.search_type, AQ.ST_norm_qint8)
+
+        code_size = (ns * Msub * nbits + 7) // 8 + 1
+        self.assertEqual(index.prq.code_size, code_size)

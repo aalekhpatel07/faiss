@@ -5,8 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-// -*- c++ -*-
-
 #include <faiss/IndexPQ.h>
 
 #include <cinttypes>
@@ -17,9 +15,11 @@
 
 #include <algorithm>
 
-#include <faiss/impl/AuxIndexStructures.h>
+#include <faiss/impl/DistanceComputer.h>
 #include <faiss/impl/FaissAssert.h>
 #include <faiss/utils/hamming.h>
+
+#include <faiss/impl/code_distance/code_distance.h>
 
 namespace faiss {
 
@@ -73,28 +73,21 @@ void IndexPQ::train(idx_t n, const float* x) {
 namespace {
 
 template <class PQDecoder>
-struct PQDistanceComputer : DistanceComputer {
+struct PQDistanceComputer : FlatCodesDistanceComputer {
     size_t d;
     MetricType metric;
-    Index::idx_t nb;
-    const uint8_t* codes;
-    size_t code_size;
+    idx_t nb;
     const ProductQuantizer& pq;
     const float* sdc;
     std::vector<float> precomputed_table;
     size_t ndis;
 
-    float operator()(idx_t i) override {
-        const uint8_t* code = codes + i * code_size;
-        const float* dt = precomputed_table.data();
-        PQDecoder decoder(code, pq.nbits);
-        float accu = 0;
-        for (int j = 0; j < pq.M; j++) {
-            accu += dt[decoder.decode()];
-            dt += 1 << decoder.nbits;
-        }
+    float distance_to_code(const uint8_t* code) final {
         ndis++;
-        return accu;
+
+        float dis = distance_single_code<PQDecoder>(
+                pq, precomputed_table.data(), code);
+        return dis;
     }
 
     float symmetric_dis(idx_t i, idx_t j) override {
@@ -112,13 +105,15 @@ struct PQDistanceComputer : DistanceComputer {
         return accu;
     }
 
-    explicit PQDistanceComputer(const IndexPQ& storage) : pq(storage.pq) {
+    explicit PQDistanceComputer(const IndexPQ& storage)
+            : FlatCodesDistanceComputer(
+                      storage.codes.data(),
+                      storage.code_size),
+              pq(storage.pq) {
         precomputed_table.resize(pq.M * pq.ksub);
         nb = storage.ntotal;
         d = storage.d;
         metric = storage.metric_type;
-        codes = storage.codes.data();
-        code_size = pq.code_size;
         if (pq.sdc_table.size() == pq.ksub * pq.ksub * pq.M) {
             sdc = pq.sdc_table.data();
         } else {
@@ -138,7 +133,7 @@ struct PQDistanceComputer : DistanceComputer {
 
 } // namespace
 
-DistanceComputer* IndexPQ::get_distance_computer() const {
+FlatCodesDistanceComputer* IndexPQ::get_FlatCodesDistanceComputer() const {
     if (pq.nbits == 8) {
         return new PQDistanceComputer<PQDecoder8>(*this);
     } else if (pq.nbits == 16) {
@@ -157,10 +152,21 @@ void IndexPQ::search(
         const float* x,
         idx_t k,
         float* distances,
-        idx_t* labels) const {
+        idx_t* labels,
+        const SearchParameters* iparams) const {
     FAISS_THROW_IF_NOT(k > 0);
-
     FAISS_THROW_IF_NOT(is_trained);
+
+    const SearchParametersPQ* params = nullptr;
+    Search_type_t search_type = this->search_type;
+
+    if (iparams) {
+        params = dynamic_cast<const SearchParametersPQ*>(iparams);
+        FAISS_THROW_IF_NOT_MSG(params, "invalid search params");
+        FAISS_THROW_IF_NOT_MSG(!params->sel, "selector not supported");
+        search_type = params->search_type;
+    }
+
     if (search_type == ST_PQ) { // Simple PQ search
 
         if (metric_type == METRIC_L2) {
@@ -179,8 +185,16 @@ void IndexPQ::search(
             search_type == ST_polysemous ||
             search_type == ST_polysemous_generalize) {
         FAISS_THROW_IF_NOT(metric_type == METRIC_L2);
-
-        search_core_polysemous(n, x, k, distances, labels);
+        int polysemous_ht =
+                params ? params->polysemous_ht : this->polysemous_ht;
+        search_core_polysemous(
+                n,
+                x,
+                k,
+                distances,
+                labels,
+                polysemous_ht,
+                search_type == ST_polysemous_generalize);
 
     } else { // code-to-code distances
 
@@ -256,12 +270,12 @@ static size_t polysemous_inner_loop(
         const uint8_t* q_code,
         size_t k,
         float* heap_dis,
-        int64_t* heap_ids) {
+        int64_t* heap_ids,
+        int ht) {
     int M = index.pq.M;
     int code_size = index.pq.code_size;
     int ksub = index.pq.ksub;
     size_t ntotal = index.ntotal;
-    int ht = index.polysemous_ht;
 
     const uint8_t* b_code = index.codes.data();
 
@@ -296,10 +310,15 @@ void IndexPQ::search_core_polysemous(
         const float* x,
         idx_t k,
         float* distances,
-        idx_t* labels) const {
+        idx_t* labels,
+        int polysemous_ht,
+        bool generalized_hamming) const {
     FAISS_THROW_IF_NOT(k > 0);
-
     FAISS_THROW_IF_NOT(pq.nbits == 8);
+
+    if (polysemous_ht == 0) {
+        polysemous_ht = pq.nbits * pq.M + 1;
+    }
 
     // PQ distance tables
     float* dis_tables = new float[n * pq.ksub * pq.M];
@@ -323,7 +342,9 @@ void IndexPQ::search_core_polysemous(
 
     size_t n_pass = 0;
 
-#pragma omp parallel for reduction(+ : n_pass)
+    int bad_code_size = 0;
+
+#pragma omp parallel for reduction(+ : n_pass, bad_code_size)
     for (idx_t qi = 0; qi < n; qi++) {
         const uint8_t* q_code = q_codes + qi * pq.code_size;
 
@@ -333,28 +354,24 @@ void IndexPQ::search_core_polysemous(
         float* heap_dis = distances + qi * k;
         maxheap_heapify(k, heap_dis, heap_ids);
 
-        if (search_type == ST_polysemous) {
+        if (!generalized_hamming) {
             switch (pq.code_size) {
-                case 4:
-                    n_pass += polysemous_inner_loop<HammingComputer4>(
-                            *this, dis_table_qi, q_code, k, heap_dis, heap_ids);
-                    break;
-                case 8:
-                    n_pass += polysemous_inner_loop<HammingComputer8>(
-                            *this, dis_table_qi, q_code, k, heap_dis, heap_ids);
-                    break;
-                case 16:
-                    n_pass += polysemous_inner_loop<HammingComputer16>(
-                            *this, dis_table_qi, q_code, k, heap_dis, heap_ids);
-                    break;
-                case 32:
-                    n_pass += polysemous_inner_loop<HammingComputer32>(
-                            *this, dis_table_qi, q_code, k, heap_dis, heap_ids);
-                    break;
-                case 20:
-                    n_pass += polysemous_inner_loop<HammingComputer20>(
-                            *this, dis_table_qi, q_code, k, heap_dis, heap_ids);
-                    break;
+#define DISPATCH(cs)                                          \
+    case cs:                                                  \
+        n_pass += polysemous_inner_loop<HammingComputer##cs>( \
+                *this,                                        \
+                dis_table_qi,                                 \
+                q_code,                                       \
+                k,                                            \
+                heap_dis,                                     \
+                heap_ids,                                     \
+                polysemous_ht);                               \
+        break;
+                DISPATCH(4)
+                DISPATCH(8)
+                DISPATCH(16)
+                DISPATCH(32)
+                DISPATCH(20)
                 default:
                     if (pq.code_size % 4 == 0) {
                         n_pass += polysemous_inner_loop<HammingComputerDefault>(
@@ -363,28 +380,30 @@ void IndexPQ::search_core_polysemous(
                                 q_code,
                                 k,
                                 heap_dis,
-                                heap_ids);
+                                heap_ids,
+                                polysemous_ht);
                     } else {
-                        FAISS_THROW_FMT(
-                                "code size %zd not supported for polysemous",
-                                pq.code_size);
+                        bad_code_size++;
                     }
                     break;
             }
-        } else {
+#undef DISPATCH
+        } else { // generalized hamming
             switch (pq.code_size) {
-                case 8:
-                    n_pass += polysemous_inner_loop<GenHammingComputer8>(
-                            *this, dis_table_qi, q_code, k, heap_dis, heap_ids);
-                    break;
-                case 16:
-                    n_pass += polysemous_inner_loop<GenHammingComputer16>(
-                            *this, dis_table_qi, q_code, k, heap_dis, heap_ids);
-                    break;
-                case 32:
-                    n_pass += polysemous_inner_loop<GenHammingComputer32>(
-                            *this, dis_table_qi, q_code, k, heap_dis, heap_ids);
-                    break;
+#define DISPATCH(cs)                                             \
+    case cs:                                                     \
+        n_pass += polysemous_inner_loop<GenHammingComputer##cs>( \
+                *this,                                           \
+                dis_table_qi,                                    \
+                q_code,                                          \
+                k,                                               \
+                heap_dis,                                        \
+                heap_ids,                                        \
+                polysemous_ht);                                  \
+        break;
+                DISPATCH(8)
+                DISPATCH(16)
+                DISPATCH(32)
                 default:
                     if (pq.code_size % 8 == 0) {
                         n_pass += polysemous_inner_loop<GenHammingComputerM8>(
@@ -393,16 +412,21 @@ void IndexPQ::search_core_polysemous(
                                 q_code,
                                 k,
                                 heap_dis,
-                                heap_ids);
+                                heap_ids,
+                                polysemous_ht);
                     } else {
-                        FAISS_THROW_FMT(
-                                "code size %zd not supported for polysemous",
-                                pq.code_size);
+                        bad_code_size++;
                     }
                     break;
+#undef DISPATCH
             }
         }
         maxheap_reorder(k, heap_dis, heap_ids);
+    }
+
+    if (bad_code_size) {
+        FAISS_THROW_FMT(
+                "code size %zd not supported for polysemous", pq.code_size);
     }
 
     indexPQ_stats.nq += n;
@@ -865,19 +889,25 @@ void MultiIndexQuantizer::train(idx_t n, const float* x) {
         ntotal *= pq.ksub;
 }
 
+// block size used in MultiIndexQuantizer::search
+int multi_index_quantizer_search_bs = 32768;
+
 void MultiIndexQuantizer::search(
         idx_t n,
         const float* x,
         idx_t k,
         float* distances,
-        idx_t* labels) const {
-    if (n == 0)
+        idx_t* labels,
+        const SearchParameters* params) const {
+    FAISS_THROW_IF_NOT_MSG(
+            !params, "search params not supported for this index");
+    if (n == 0) {
         return;
-
+    }
     FAISS_THROW_IF_NOT(k > 0);
 
     // the allocation just below can be severe...
-    idx_t bs = 32768;
+    idx_t bs = multi_index_quantizer_search_bs;
     if (n > bs) {
         for (idx_t i0 = 0; i0 < n; i0 += bs) {
             idx_t i1 = std::min(i0 + bs, n);
@@ -1012,9 +1042,14 @@ void MultiIndexQuantizer2::search(
         const float* x,
         idx_t K,
         float* distances,
-        idx_t* labels) const {
-    if (n == 0)
+        idx_t* labels,
+        const SearchParameters* params) const {
+    FAISS_THROW_IF_NOT_MSG(
+            !params, "search params not supported for this index");
+
+    if (n == 0) {
         return;
+    }
 
     int k2 = std::min(K, int64_t(pq.ksub));
     FAISS_THROW_IF_NOT(k2);

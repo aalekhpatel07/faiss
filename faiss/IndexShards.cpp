@@ -22,95 +22,14 @@ namespace faiss {
 // subroutines
 namespace {
 
-typedef Index::idx_t idx_t;
-
 // add translation to all valid labels
-void translate_labels(long n, idx_t* labels, long translation) {
+void translate_labels(int64_t n, idx_t* labels, int64_t translation) {
     if (translation == 0)
         return;
-    for (long i = 0; i < n; i++) {
+    for (int64_t i = 0; i < n; i++) {
         if (labels[i] < 0)
             continue;
         labels[i] += translation;
-    }
-}
-
-/** merge result tables from several shards.
- * @param all_distances  size nshard * n * k
- * @param all_labels     idem
- * @param translartions  label translations to apply, size nshard
- */
-
-template <class IndexClass, class C>
-void merge_tables(
-        long n,
-        long k,
-        long nshard,
-        typename IndexClass::distance_t* distances,
-        idx_t* labels,
-        const std::vector<typename IndexClass::distance_t>& all_distances,
-        const std::vector<idx_t>& all_labels,
-        const std::vector<long>& translations) {
-    if (k == 0) {
-        return;
-    }
-    using distance_t = typename IndexClass::distance_t;
-
-    long stride = n * k;
-#pragma omp parallel
-    {
-        std::vector<int> buf(2 * nshard);
-        int* pointer = buf.data();
-        int* shard_ids = pointer + nshard;
-        std::vector<distance_t> buf2(nshard);
-        distance_t* heap_vals = buf2.data();
-#pragma omp for
-        for (long i = 0; i < n; i++) {
-            // the heap maps values to the shard where they are
-            // produced.
-            const distance_t* D_in = all_distances.data() + i * k;
-            const idx_t* I_in = all_labels.data() + i * k;
-            int heap_size = 0;
-
-            for (long s = 0; s < nshard; s++) {
-                pointer[s] = 0;
-                if (I_in[stride * s] >= 0) {
-                    heap_push<C>(
-                            ++heap_size,
-                            heap_vals,
-                            shard_ids,
-                            D_in[stride * s],
-                            s);
-                }
-            }
-
-            distance_t* D = distances + i * k;
-            idx_t* I = labels + i * k;
-
-            for (int j = 0; j < k; j++) {
-                if (heap_size == 0) {
-                    I[j] = -1;
-                    D[j] = C::neutral();
-                } else {
-                    // pop best element
-                    int s = shard_ids[0];
-                    int& p = pointer[s];
-                    D[j] = heap_vals[0];
-                    I[j] = I_in[stride * s + p] + translations[s];
-
-                    heap_pop<C>(heap_size--, heap_vals, shard_ids);
-                    p++;
-                    if (p < k && I_in[stride * s + p] >= 0) {
-                        heap_push<C>(
-                                ++heap_size,
-                                heap_vals,
-                                shard_ids,
-                                D_in[stride * s + p],
-                                s);
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -247,11 +166,9 @@ void IndexShardsTemplate<IndexT>::add_with_ids(
 
     if (!ids && !successive_ids) {
         aids.resize(n);
-
         for (idx_t i = 0; i < n; i++) {
             aids[i] = this->ntotal + i;
         }
-
         ids = aids.data();
     }
 
@@ -288,15 +205,29 @@ void IndexShardsTemplate<IndexT>::search(
         const component_t* x,
         idx_t k,
         distance_t* distances,
-        idx_t* labels) const {
+        idx_t* labels,
+        const SearchParameters* params) const {
+    FAISS_THROW_IF_NOT_MSG(
+            !params, "search params not supported for this index");
     FAISS_THROW_IF_NOT(k > 0);
 
-    long nshard = this->count();
+    int64_t nshard = this->count();
 
     std::vector<distance_t> all_distances(nshard * k * n);
     std::vector<idx_t> all_labels(nshard * k * n);
+    std::vector<int64_t> translations(nshard, 0);
 
-    auto fn = [n, k, x, &all_distances, &all_labels](
+    // Because we just called runOnIndex above, it is safe to access the
+    // sub-index ntotal here
+    if (successive_ids) {
+        translations[0] = 0;
+
+        for (int s = 0; s + 1 < nshard; s++) {
+            translations[s + 1] = translations[s] + this->at(s)->ntotal;
+        }
+    }
+
+    auto fn = [n, k, x, &all_distances, &all_labels, &translations](
                       int no, const IndexT* index) {
         if (index->verbose) {
             printf("begin query shard %d on %" PRId64 " points\n", no, n);
@@ -309,6 +240,9 @@ void IndexShardsTemplate<IndexT>::search(
                 all_distances.data() + no * k * n,
                 all_labels.data() + no * k * n);
 
+        translate_labels(
+                n * k, all_labels.data() + no * k * n, translations[no]);
+
         if (index->verbose) {
             printf("end query shard %d\n", no);
         }
@@ -316,38 +250,24 @@ void IndexShardsTemplate<IndexT>::search(
 
     this->runOnIndex(fn);
 
-    std::vector<long> translations(nshard, 0);
-
-    // Because we just called runOnIndex above, it is safe to access the
-    // sub-index ntotal here
-    if (successive_ids) {
-        translations[0] = 0;
-
-        for (int s = 0; s + 1 < nshard; s++) {
-            translations[s + 1] = translations[s] + this->at(s)->ntotal;
-        }
-    }
-
     if (this->metric_type == METRIC_L2) {
-        merge_tables<IndexT, CMin<distance_t, int>>(
+        merge_knn_results<idx_t, CMin<distance_t, int>>(
                 n,
                 k,
                 nshard,
+                all_distances.data(),
+                all_labels.data(),
                 distances,
-                labels,
-                all_distances,
-                all_labels,
-                translations);
+                labels);
     } else {
-        merge_tables<IndexT, CMax<distance_t, int>>(
+        merge_knn_results<idx_t, CMax<distance_t, int>>(
                 n,
                 k,
                 nshard,
+                all_distances.data(),
+                all_labels.data(),
                 distances,
-                labels,
-                all_distances,
-                all_labels,
-                translations);
+                labels);
     }
 }
 
