@@ -16,6 +16,7 @@
 #include "IndexBinary_c.h"
 #include "Index_c.h"
 #include "faiss_c.h"
+#include "../faiss/impl/io.h"
 
 #ifdef __cplusplus
 extern "C" {
