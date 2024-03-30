@@ -12,9 +12,12 @@
 #include "index_io_c.h"
 #include <faiss/index_io.h>
 #include "macros_impl.h"
+#include <faiss/impl/io.h>
 
 using faiss::Index;
 using faiss::IndexBinary;
+using faiss::IOWriter;
+using faiss::IOReader;
 
 int faiss_write_index(const FaissIndex* idx, FILE* f) {
     try {
@@ -26,6 +29,13 @@ int faiss_write_index(const FaissIndex* idx, FILE* f) {
 int faiss_write_index_fname(const FaissIndex* idx, const char* fname) {
     try {
         faiss::write_index(reinterpret_cast<const Index*>(idx), fname);
+    }
+    CATCH_AND_HANDLE
+}
+
+int faiss_write_index_writer(const FaissIndex* idx, IOWriter* writer) {
+    try {
+        faiss::write_index(reinterpret_cast<const Index*>(idx), writer);
     }
     CATCH_AND_HANDLE
 }
@@ -49,6 +59,14 @@ int faiss_read_index_fname(
     CATCH_AND_HANDLE
 }
 
+int faiss_read_index_reader(IOReader* reader, int io_flags, FaissIndex** p_out) {
+    try {
+        auto out = faiss::read_index(reader, io_flags);
+        *p_out = reinterpret_cast<FaissIndex*>(out);
+    }
+    CATCH_AND_HANDLE
+}
+
 int faiss_write_index_binary(const FaissIndexBinary* idx, FILE* f) {
     try {
         faiss::write_index_binary(reinterpret_cast<const IndexBinary*>(idx), f);
@@ -62,6 +80,13 @@ int faiss_write_index_binary_fname(
     try {
         faiss::write_index_binary(
                 reinterpret_cast<const IndexBinary*>(idx), fname);
+    }
+    CATCH_AND_HANDLE
+}
+
+int faiss_write_index_binary_writer(const FaissIndexBinary* idx, IOWriter* writer) {
+    try {
+        faiss::write_index_binary(reinterpret_cast<const IndexBinary*>(idx), writer);
     }
     CATCH_AND_HANDLE
 }
@@ -80,6 +105,14 @@ int faiss_read_index_binary_fname(
         FaissIndexBinary** p_out) {
     try {
         auto out = faiss::read_index_binary(fname, io_flags);
+        *p_out = reinterpret_cast<FaissIndexBinary*>(out);
+    }
+    CATCH_AND_HANDLE
+}
+
+int faiss_read_index_binary_reader(IOReader* reader, int io_flags, FaissIndexBinary** p_out) {
+    try {
+        auto out = faiss::read_index_binary(reader, io_flags);
         *p_out = reinterpret_cast<FaissIndexBinary*>(out);
     }
     CATCH_AND_HANDLE

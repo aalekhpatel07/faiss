@@ -32,6 +32,13 @@ int faiss_write_index(const FaissIndex* idx, FILE* f);
  */
 int faiss_write_index_fname(const FaissIndex* idx, const char* fname);
 
+/** Write index to a writer.
+ * This is equivalent to `faiss::write_index` when an IOWriter is
+ * provided.
+ */
+int faiss_write_index_writer(const FaissIndex* idx, IOWriter* writer);
+
+
 #define FAISS_IO_FLAG_MMAP 1
 #define FAISS_IO_FLAG_READ_ONLY 2
 
@@ -44,6 +51,12 @@ int faiss_read_index(FILE* f, int io_flags, FaissIndex** p_out);
  * This is equivalent to `faiss:read_index` when a file path is given.
  */
 int faiss_read_index_fname(const char* fname, int io_flags, FaissIndex** p_out);
+
+/** Read index from a reader.
+ * This is equivalent to `faiss::read_index` when an IOReader is
+ * provided.
+ */
+int faiss_read_index_reader(IOReader* reader, int io_flags, const FaissIndex** p_out);
 
 /** Write index to a file.
  * This is equivalent to `faiss::write_index_binary` when a file descriptor is
@@ -59,6 +72,15 @@ int faiss_write_index_binary_fname(
         const FaissIndexBinary* idx,
         const char* fname);
 
+
+/** Write index to a writer.
+ * This is equivalent to `faiss::write_index_binary` when an IOWriter is
+ * provided.
+ */
+int faiss_write_index_binary_writer(
+        const FaissIndexBinary* idx,
+        IOWriter* writer);
+
 /** Read index from a file.
  * This is equivalent to `faiss:read_index_binary` when a file descriptor is
  * given.
@@ -72,6 +94,14 @@ int faiss_read_index_binary_fname(
         const char* fname,
         int io_flags,
         FaissIndexBinary** p_out);
+
+
+/** Read index from a reader.
+ * This is equivalent to `faiss::read_index` when an IOReader is
+ * provided.
+ */
+int faiss_read_index_binary_reader(IOReader* reader, int io_flags, const FaissIndexBinary** p_out);
+
 #ifdef __cplusplus
 }
 #endif
