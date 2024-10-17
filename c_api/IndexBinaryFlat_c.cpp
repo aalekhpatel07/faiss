@@ -31,35 +31,11 @@ int faiss_IndexBinaryFlat_new(FaissIndexBinaryFlat** p_index) {
 
 int faiss_IndexBinaryFlat_new_with(
         FaissIndexBinaryFlat** p_index,
-        idx_t d,
-        FaissMetricType metric) {
+        idx_t d) {
     try {
         IndexBinaryFlat* index =
-                new IndexBinaryFlat(d, static_cast<faiss::MetricType>(metric));
+                new IndexBinaryFlat(d);
         *p_index = reinterpret_cast<FaissIndexBinaryFlat*>(index);
-        return 0;
-    }
-    CATCH_AND_HANDLE
-}
-
-void faiss_IndexBinaryFlat_xb(FaissIndexBinaryFlat* index, uint8_t** p_xb, size_t* p_size) {
-    IndexBinaryFlat* indexf = reinterpret_cast<IndexBinaryFlat*>(index);
-    *p_xb = indexf->get_xb();
-    if (p_size) {
-        *p_size = indexf->codes.size() / sizeof(uint8_t);
-    }
-}
-
-int faiss_IndexBinaryFlat_compute_distance_subset(
-        FaissBinaryIndex* index,
-        idx_t n,
-        const uint8_t* x,
-        idx_t k,
-        uint8_t* distances,
-        const idx_t* labels) {
-    try {
-        reinterpret_cast<IndexBinaryFlat*>(index)->compute_distance_subset(
-                n, x, k, distances, labels);
         return 0;
     }
     CATCH_AND_HANDLE
