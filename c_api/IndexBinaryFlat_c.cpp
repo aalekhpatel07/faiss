@@ -40,3 +40,5 @@ int faiss_IndexBinaryFlat_new_with(
     }
     CATCH_AND_HANDLE
 }
+
+}
