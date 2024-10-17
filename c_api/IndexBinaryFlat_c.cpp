@@ -17,8 +17,6 @@ extern "C" {
 
 using faiss::IndexBinary;
 using faiss::IndexBinaryFlat;
-using faiss::IndexBinaryFlat1D;
-using faiss::IndexBinaryFlatL2;
 
 DEFINE_DESTRUCTOR(IndexBinaryFlat)
 DEFINE_INDEX_DOWNCAST_BINARY(IndexBinaryFlat)
@@ -65,58 +63,4 @@ int faiss_IndexBinaryFlat_compute_distance_subset(
         return 0;
     }
     CATCH_AND_HANDLE
-}
-
-DEFINE_DESTRUCTOR(IndexBinaryFlatL2)
-DEFINE_INDEX_DOWNCAST_BINARY(IndexBinaryFlatL2)
-
-int faiss_IndexBinaryFlatL2_new(FaissIndexBinaryFlatL2** p_index) {
-    try {
-        IndexBinaryFlatL2* index = new IndexBinaryFlatL2();
-        *p_index = reinterpret_cast<FaissIndexBinaryFlatL2*>(index);
-        return 0;
-    }
-    CATCH_AND_HANDLE
-}
-
-int faiss_IndexBinaryFlatL2_new_with(FaissIndexBinaryFlatL2** p_index, idx_t d) {
-    try {
-        IndexBinaryFlatL2* index = new IndexBinaryFlatL2(d);
-        *p_index = reinterpret_cast<FaissIndexBinaryFlatL2*>(index);
-        return 0;
-    }
-    CATCH_AND_HANDLE
-}
-
-DEFINE_DESTRUCTOR(IndexFlat1D)
-DEFINE_INDEX_DOWNCAST_BINARY(IndexFlat1D)
-
-int faiss_IndexBinaryFlat1D_new(FaissIndexBinaryFlat1D** p_index) {
-    try {
-        IndexBinaryFlat1D* index = new IndexBinaryFlat1D();
-        *p_index = reinterpret_cast<FaissIndexBinaryFlat1D*>(index);
-        return 0;
-    }
-    CATCH_AND_HANDLE
-}
-
-int faiss_IndexBinaryFlat1D_new_with(
-        FaissIndexBinaryFlat1D** p_index,
-        int continuous_update) {
-    try {
-        IndexBinaryFlat1D* index =
-                new IndexBinaryFlat1D(static_cast<bool>(continuous_update));
-        *p_index = reinterpret_cast<FaissIndexBinaryFlat1D*>(index);
-        return 0;
-    }
-    CATCH_AND_HANDLE
-}
-
-int faiss_IndexBinaryFlat1D_update_permutation(FaissIndexBinaryFlat1D* index) {
-    try {
-        reinterpret_cast<IndexBinaryFlat1D*>(index)->update_permutation();
-        return 0;
-    }
-    CATCH_AND_HANDLE
-}
 }
