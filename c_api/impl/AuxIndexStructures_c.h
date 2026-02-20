@@ -51,6 +51,9 @@ void faiss_RangeSearchResult_labels(
 FAISS_DECLARE_CLASS(RejectionResult)
 FAISS_DECLARE_DESTRUCTOR(RejectionResult)
 
+/// getter for buffer_size
+FAISS_DECLARE_GETTER(RejectionResult, size_t, nq)
+
 int faiss_RejectionResult_new(FaissRejectionResult** p_rej, size_t nq);
 
 /** Set the value at a specific index. */
