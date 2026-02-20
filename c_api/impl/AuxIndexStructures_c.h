@@ -12,6 +12,7 @@
 
 #include "../Index_c.h"
 #include "../faiss_c.h"
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

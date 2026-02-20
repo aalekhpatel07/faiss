@@ -12,6 +12,7 @@
 #include <faiss/impl/DistanceComputer.h>
 #include <faiss/impl/IDSelector.h>
 #include <iostream>
+#include <stdbool.h>
 #include "../macros_impl.h"
 
 using faiss::BufferList;
