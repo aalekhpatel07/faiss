@@ -23,7 +23,7 @@ IndexBinaryBloom::IndexBinaryBloom(idx_t d) : d(d), code_size(d / 8) {
 }
 
 void IndexBinaryBloom::add(idx_t n, const uint8_t* x) {
-    for (int segment_idx = 0; segment_idx < (d / 16); segment_idx += 16) {
+    for (int segment_idx = 0; segment_idx < (d / 16); segment_idx++) {
         uint16_t segment;
         size_t segment_offset = segment_idx;
         segment_offset *= 1 << 16;
