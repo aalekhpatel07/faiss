@@ -62,6 +62,13 @@ int faiss_RejectionResult_set(
         size_t idx,
         bool v);
 
+/// getter for rejections.
+/// result for query i is rejections[i].
+void faiss_RejectionResult_rejections(
+        FaissRejectionResult* rej,
+        bool** rejections);
+
+
 /** Encapsulates a set of ids to remove. */
 FAISS_DECLARE_CLASS(IDSelector)
 FAISS_DECLARE_DESTRUCTOR(IDSelector)
