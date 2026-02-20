@@ -50,7 +50,7 @@ void IndexBinaryBloom::reject(
         RejectionResult* result) const {
     for (int i = 0; i < n * code_size; i += code_size) {
         bool segment_hit = false;
-        for (int segment_idx = 0; segment_idx < (d / 16); segment_idx += 16) {
+        for (int segment_idx = 0; segment_idx < (d / 16); segment_idx++) {
             uint16_t segment;
 
             size_t segment_offset = segment_idx;
