@@ -31,9 +31,7 @@ FAISS_DECLARE_GETTER(IndexBinaryBloom, int, d)
 /**
  * Create a new Binary Bloom index for vectors of the given dimension.
  */
-int faiss_IndexBinaryBloom_new(
-	FaissIndexBinaryBloom** p_index,
-	idx_t d);
+int faiss_IndexBinaryBloom_new(FaissIndexBinaryBloom** p_index, idx_t d);
 
 /** Add n vectors of dimension d to the index.
  *

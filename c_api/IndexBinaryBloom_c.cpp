@@ -17,11 +17,9 @@ DEFINE_DESTRUCTOR(IndexBinaryBloom)
 
 DEFINE_GETTER(IndexBinaryBloom, int, d)
 
-int faiss_IndexBinaryBloom_new(
-	FaissIndexBinaryBloom** p_index, 
-	idx_t d) {
+int faiss_IndexBinaryBloom_new(FaissIndexBinaryBloom** p_index, idx_t d) {
     try {
-	auto index = new faiss::IndexBinaryBloom(d);
+        auto index = new faiss::IndexBinaryBloom(d);
         *p_index = reinterpret_cast<FaissIndexBinaryBloom*>(index);
     }
     CATCH_AND_HANDLE
