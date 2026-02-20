@@ -10,9 +10,9 @@
 #ifndef FAISS_AUX_INDEX_STRUCTURES_C_H
 #define FAISS_AUX_INDEX_STRUCTURES_C_H
 
+#include <stdbool.h>
 #include "../Index_c.h"
 #include "../faiss_c.h"
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,7 +67,6 @@ int faiss_RejectionResult_set(
 void faiss_RejectionResult_rejections(
         FaissRejectionResult* rej,
         bool** rejections);
-
 
 /** Encapsulates a set of ids to remove. */
 FAISS_DECLARE_CLASS(IDSelector)
