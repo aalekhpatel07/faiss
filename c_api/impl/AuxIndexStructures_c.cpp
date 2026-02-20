@@ -27,6 +27,7 @@ using faiss::IDSelectorXOr;
 using faiss::RangeQueryResult;
 using faiss::RangeSearchPartialResult;
 using faiss::RangeSearchResult;
+using faiss::RejectionResult;
 
 DEFINE_GETTER(RangeSearchResult, size_t, nq)
 
@@ -81,6 +82,42 @@ void faiss_RangeSearchResult_labels(
     *labels = sr->labels;
     *distances = sr->distances;
 }
+
+int faiss_RejectionResult_new(FaissRejectionResult** p_rej, size_t nq) {
+    try {
+        *p_rej = reinterpret_cast<FaissRejectionResult*>(
+                new RejectionResult(nq));
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+/// getter for buffer_size
+DEFINE_GETTER(RejectionResult, size_t, nq)
+
+/** Set the value at a specific index. */
+int faiss_RejectionResult_set(
+	FaissRejectionResult* p_rej, 
+	size_t idx, 
+	bool v) {
+    try {
+        reinterpret_cast<RejectionResult*>(p_rej)->set(idx, v);
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+/// getter for rejections.
+/// result for query i is rejections[i]
+void faiss_RejectionResult_rejections(
+        FaissRejectionResult* rej,
+        bool** rejections) {
+    auto rr = reinterpret_cast<RejectionResult*>(rej);
+    *rejections = rr->rejections;
+}
+
+
+DEFINE_DESTRUCTOR(RejectionResult)
 
 DEFINE_DESTRUCTOR(IDSelector)
 

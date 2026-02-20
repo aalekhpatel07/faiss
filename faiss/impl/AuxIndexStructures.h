@@ -50,8 +50,8 @@ struct RejectionResult {
     size_t nq;        ///< nb of queries
     bool* rejections; /// corresponding booleans.
 
-    /// rejections must be allocated on input to reject.
-    explicit RejectionResult(size_t nq);
+    /// rejections array.
+    RejectionResult(size_t nq);
 
     /// set one result to the buffer.
     void set(size_t idx, bool v);

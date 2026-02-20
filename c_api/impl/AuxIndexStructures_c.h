@@ -47,6 +47,19 @@ void faiss_RangeSearchResult_labels(
         idx_t** labels,
         float** distances);
 
+FAISS_DECLARE_CLASS(RejectionResult)
+FAISS_DECLARE_DESTRUCTOR(RejectionResult)
+
+int faiss_RejectionResult_new(
+	FaissRejectionResult** p_rej,
+	size_t nq);
+
+/** Set the value at a specific index. */
+int faiss_RejectionResult_set(
+	const FaissRejectionResult* p_rej,
+	size_t idx,
+	bool v);
+
 /** Encapsulates a set of ids to remove. */
 FAISS_DECLARE_CLASS(IDSelector)
 FAISS_DECLARE_DESTRUCTOR(IDSelector)
