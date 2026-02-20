@@ -29,7 +29,7 @@ void IndexBinaryBloom::add(idx_t n, const uint8_t* x) {
         segment_offset *= 1 << 16;
         for (int i = 0; i < n * code_size; i += code_size) {
             // read the two bytes in LE into the segment.
-            std::memcpy(&segment, x + i + segment_idx, sizeof(segment));
+            std::memcpy(&segment, x + i + segment_offset, sizeof(segment));
             size_t segment_val = segment;
 
             size_t byte_offset = segment_val / 8;
@@ -56,7 +56,7 @@ void IndexBinaryBloom::reject(
             size_t segment_offset = segment_idx;
             segment_offset *= 1 << 16;
 
-            std::memcpy(&segment, x + i + segment_idx, sizeof(segment));
+            std::memcpy(&segment, x + i + segment_offset, sizeof(segment));
             size_t segment_val = segment;
 
             size_t byte_offset = segment_val / 8;
