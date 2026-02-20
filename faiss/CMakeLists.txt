@@ -39,6 +39,7 @@ set(FAISS_SRC
   IndexAdditiveQuantizer.cpp
   IndexBinary.cpp
   IndexBinaryFlat.cpp
+  IndexBinaryBloom.cpp
   IndexBinaryFromFloat.cpp
   IndexBinaryHNSW.cpp
   IndexBinaryHash.cpp
@@ -159,6 +160,7 @@ set(FAISS_HEADERS
   IndexAdditiveQuantizer.h
   IndexBinary.h
   IndexBinaryFlat.h
+  IndexBinaryBloom.h
   IndexBinaryFromFloat.h
   IndexBinaryHNSW.h
   IndexBinaryHash.h

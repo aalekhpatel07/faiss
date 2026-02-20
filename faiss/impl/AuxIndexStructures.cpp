@@ -56,6 +56,25 @@ RangeSearchResult::~RangeSearchResult() {
 }
 
 /***********************************************************************
+ * RejectionResult
+ ***********************************************************************/
+
+RejectionResult::RejectionResult(size_t nq) : nq(nq) {
+    rejections = new bool[nq];
+    memset(rejections, 0, sizeof(*rejections) * nq);
+}
+
+void RejectionResult::set(size_t idx, bool value) {
+    FAISS_THROW_IF_NOT(idx < nq && idx >= 0);
+
+    rejections[idx] = value;
+}
+
+RejectionResult::~RejectionResult() {
+    delete[] rejections;
+}
+
+/***********************************************************************
  * BufferList
  ***********************************************************************/
 
