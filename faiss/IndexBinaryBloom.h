@@ -31,15 +31,13 @@ struct IndexBinaryBloom {
 
     idx_t code_size; /// = (d / 8)
 
-    explicit IndexBinaryBloom(idx_t d);
+    IndexBinaryBloom(idx_t d);
 
     void add(idx_t n, const uint8_t* x);
 
     void reset();
 
     void reject(idx_t n, const uint8_t* x, RejectionResult* result) const;
-
-    IndexBinaryBloom() {}
 };
 
 } // namespace faiss
