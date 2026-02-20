@@ -23,7 +23,8 @@ IndexBinaryBloom::IndexBinaryBloom(idx_t d) : d(d), code_size(d / 8) {
 }
 
 void IndexBinaryBloom::add(idx_t n, const uint8_t* x) {
-    for (size_t segment_offset = 0; segment_offset < 512 * d; segment_offset += 8192) {
+    for (size_t segment_offset = 0; segment_offset < 512 * d;
+         segment_offset += 8192) {
         uint16_t segment;
         size_t segment_idx = segment_offset / 8192;
 
@@ -53,7 +54,8 @@ void IndexBinaryBloom::reject(
     for (int query = 0; query < n * code_size; query += code_size) {
         bool segment_hit = false;
 
-        for (size_t segment_offset = 0; segment_offset < 512 * d; segment_offset += 8192) {
+        for (size_t segment_offset = 0; segment_offset < 512 * d;
+             segment_offset += 8192) {
             uint16_t segment;
             size_t segment_idx = segment_offset / 8192;
 
