@@ -23,11 +23,10 @@ struct RejectionResult;
 
 /** Index that allows an efficient neighborhood dismembership test. */
 struct IndexBinaryBloom {
-
     int d;
 
-    /// A bitmap that tracks presence of 16-bit segments of the database vectors.
-    /// size: 512 * d
+    /// A bitmap that tracks presence of 16-bit segments of the database
+    /// vectors. size: 512 * d
     MaybeOwnedVector<uint8_t> bitmap;
 
     idx_t code_size; /// = (d / 8)
@@ -38,11 +37,7 @@ struct IndexBinaryBloom {
 
     void reset();
 
-    void reject(
-            idx_t n,
-            const uint8_t* x,
-            RejectionResult* result
-            ) const;
+    void reject(idx_t n, const uint8_t* x, RejectionResult* result) const;
 
     IndexBinaryBloom() {}
 };

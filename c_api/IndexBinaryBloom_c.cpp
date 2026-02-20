@@ -1,5 +1,5 @@
 /*
-* Copyright (c) Meta Platforms, Inc. and affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -17,7 +17,10 @@ DEFINE_DESTRUCTOR(IndexBinaryBloom)
 
 DEFINE_GETTER(IndexBinaryBloom, int, d)
 
-int faiss_IndexBinaryBloom_add(FaissIndexBinaryBloom* index, idx_t n, const uint8_t* x) {
+int faiss_IndexBinaryBloom_add(
+        FaissIndexBinaryBloom* index,
+        idx_t n,
+        const uint8_t* x) {
     try {
         reinterpret_cast<faiss::IndexBinaryBloom*>(index)->add(n, x);
     }
@@ -31,9 +34,7 @@ int faiss_IndexBinaryBloom_reject(
         FaissRejectionResult* result) {
     try {
         reinterpret_cast<const faiss::IndexBinaryBloom*>(index)->reject(
-                n,
-                x,
-                reinterpret_cast<faiss::RejectionResult*>(result));
+                n, x, reinterpret_cast<faiss::RejectionResult*>(result));
     }
     CATCH_AND_HANDLE
 }

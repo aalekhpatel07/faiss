@@ -35,7 +35,10 @@ FAISS_DECLARE_GETTER(IndexBinaryBloom, int, d)
  * @param index  opaque pointer to index object
  * @param x      input matrix, size n * d
  */
-int faiss_IndexBinaryBloom_add(FaissIndexBinaryBloom* index, idx_t n, const uint8_t* x);
+int faiss_IndexBinaryBloom_add(
+        FaissIndexBinaryBloom* index,
+        idx_t n,
+        const uint8_t* x);
 
 /** Determine if any of the query vectors can be rejected safely,
  * guaranteeing it does not fall within a reasonably small neighborhood
@@ -43,7 +46,8 @@ int faiss_IndexBinaryBloom_add(FaissIndexBinaryBloom* index, idx_t n, const uint
  *
  * @param index       opaque pointer to index object
  * @param x           input vectors to search, size n * d
- * @param result      result list, where true indicates the corresponding query can be rejected safely.
+ * @param result      result list, where true indicates the corresponding query
+ * can be rejected safely.
  */
 int faiss_IndexBinaryBloom_reject(
         const FaissIndexBinaryBloom* index,

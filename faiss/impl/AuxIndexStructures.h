@@ -46,10 +46,9 @@ struct RangeSearchResult {
     virtual ~RangeSearchResult();
 };
 
-
 struct RejectionResult {
-    size_t nq;          ///< nb of queries
-    bool* rejections;   /// corresponding booleans.
+    size_t nq;        ///< nb of queries
+    bool* rejections; /// corresponding booleans.
 
     /// rejections must be allocated on input to reject.
     explicit RejectionResult(size_t nq);

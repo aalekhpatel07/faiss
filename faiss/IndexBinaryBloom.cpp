@@ -10,10 +10,10 @@
 #include <faiss/IndexBinaryBloom.h>
 
 #include <faiss/impl/AuxIndexStructures.h>
-#include <faiss/impl/maybe_owned_vector.h>
 #include <faiss/impl/FaissAssert.h>
-#include <cstring>
+#include <faiss/impl/maybe_owned_vector.h>
 #include <cstdint>
+#include <cstring>
 
 namespace faiss {
 
@@ -48,7 +48,6 @@ void IndexBinaryBloom::reject(
         idx_t n,
         const uint8_t* x,
         RejectionResult* result) const {
-
     for (int i = 0; i < n * code_size; i += code_size) {
         bool segment_hit = false;
         for (int segment_idx = 0; segment_idx < (d / 16); segment_idx += 16) {
