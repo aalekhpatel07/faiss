@@ -71,9 +71,9 @@ void IndexBinaryBloom::reject(
         }
         // if none of the segments had been seen before,
         // we're guaranteed the query vector is at least
-        // a distance of (d / 16) day away from any of the
+        // a distance of (d / 16)-away from any of the
         // vectors in the database.
-        result->set(i, !segment_hit);
+        result->set(i / code_size, !segment_hit);
     }
 }
 } // namespace faiss
