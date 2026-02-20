@@ -96,10 +96,7 @@ int faiss_RejectionResult_new(FaissRejectionResult** p_rej, size_t nq) {
 DEFINE_GETTER(RejectionResult, size_t, nq)
 
 /** Set the value at a specific index. */
-int faiss_RejectionResult_set(
-	FaissRejectionResult* p_rej, 
-	size_t idx, 
-	bool v) {
+int faiss_RejectionResult_set(FaissRejectionResult* p_rej, size_t idx, bool v) {
     try {
         reinterpret_cast<RejectionResult*>(p_rej)->set(idx, v);
         return 0;
@@ -115,7 +112,6 @@ void faiss_RejectionResult_rejections(
     auto rr = reinterpret_cast<RejectionResult*>(rej);
     *rejections = rr->rejections;
 }
-
 
 DEFINE_DESTRUCTOR(RejectionResult)
 
