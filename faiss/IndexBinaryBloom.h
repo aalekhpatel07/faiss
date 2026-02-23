@@ -21,6 +21,8 @@ namespace faiss {
 /// Forward declarations see AuxIndexStructures.h
 struct RejectionResult;
 
+struct SegmentsResult;
+
 /** Index that allows an efficient neighborhood dismembership test. */
 struct IndexBinaryBloom {
     int d;
@@ -33,11 +35,18 @@ struct IndexBinaryBloom {
 
     IndexBinaryBloom(idx_t d);
 
+    /// Add given vectors to the index.
     void add(idx_t n, const uint8_t* x);
 
+    /// Clear all data from the index and reset it.
     void reset();
 
-    void reject(idx_t n, const uint8_t* x, RejectionResult* result) const;
+    /// Determine if any of the query vectors are guaranteed
+    /// to lie outside the radius from all the indexed vectors.
+    void should_reject(idx_t n, const uint8_t* x, int acceptance_radius, RejectionResult* result) const;
+
+    /// Get all indexed uint16_t's for every 16-bit segment of the indexed vectors.
+    void segments(SegmentsResult* result) const;
 };
 
 } // namespace faiss

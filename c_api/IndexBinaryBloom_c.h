@@ -20,6 +20,7 @@ extern "C" {
 
 // forward declaration required here
 FAISS_DECLARE_CLASS(RejectionResult)
+FAISS_DECLARE_CLASS(SegmentsResult)
 
 /// Opaque type for referencing to a binary index bloom object
 FAISS_DECLARE_CLASS(IndexBinaryBloom)
@@ -49,16 +50,27 @@ int faiss_IndexBinaryBloom_add(
  * guaranteeing it does not fall within a reasonably small neighborhood
  * of any vector from the database.
  *
- * @param index       opaque pointer to index object
- * @param x           input vectors to search, size n * d
- * @param result      result list, where true indicates the corresponding query
- * can be rejected safely.
+ * @param index                 opaque pointer to index object
+ * @param x                     input vectors to search, size n * d
+ * @param acceptance_radius     query vectors should be within this radius of
+ * any indexed vectors to be accepted.
+ * @param result                result list, where true indicates
+ * the corresponding query can be rejected safely.
  */
-int faiss_IndexBinaryBloom_reject(
+int faiss_IndexBinaryBloom_should_reject(
         const FaissIndexBinaryBloom* index,
         idx_t n,
         const uint8_t* x,
+        int acceptance_radius,
         FaissRejectionResult* result);
+
+/** Get the bitmap segments stored in the index.
+ * @param index                 opaque pointer to index object
+ * @param result                opaque pointer to the results object
+*/
+int faiss_IndexBinaryBloom_segments(
+        const FaissIndexBinaryBloom* index,
+        FaissSegmentsResult* result);
 
 /** removes all elements from the cache.
  * @param index       opaque pointer to index object

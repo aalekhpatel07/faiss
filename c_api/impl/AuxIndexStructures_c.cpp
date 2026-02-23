@@ -29,6 +29,7 @@ using faiss::RangeQueryResult;
 using faiss::RangeSearchPartialResult;
 using faiss::RangeSearchResult;
 using faiss::RejectionResult;
+using faiss::SegmentsResult;
 
 DEFINE_GETTER(RangeSearchResult, size_t, nq)
 
@@ -115,6 +116,37 @@ void faiss_RejectionResult_rejections(
 }
 
 DEFINE_DESTRUCTOR(RejectionResult)
+
+int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments) {
+    try {
+        *p_seg = reinterpret_cast<FaissSegmentsResult*>(
+                new SegmentsResult(num_segments));
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+/** Set the value at a specific index. */
+int faiss_SegmentsResult_set(FaissSegmentsResult* p_seg, size_t segment, uint16_t value) {
+    try {
+        reinterpret_cast<SegmentsResult*>(p_seg)->set(segment, value);
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+/// getter for segments.
+/// result for segment i is segments[i]
+void faiss_SegmentsResult_segments(
+        FaissSegmentsResult* p_seg,
+        std::vector<uint16_t>** segments) {
+    auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
+    *segments = sr->segments;
+}
+
+/// getter for number of 16-bit segments. (i.e. d / 16)
+DEFINE_GETTER(SegmentsResult, size_t, num_segments)
+
 
 DEFINE_DESTRUCTOR(IDSelector)
 

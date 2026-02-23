@@ -59,6 +59,19 @@ struct RejectionResult {
     virtual ~RejectionResult();
 };
 
+
+struct SegmentsResult {
+    size_t num_segments; /// the number of segments (i.e. the length of the outer vector).
+    std::vector<uint16_t>* segments; /// the positions of the set bits per segment for every segment.
+
+    SegmentsResult(size_t num_segments);
+
+    /// Include the given value in a segment.
+    void set(size_t segment, uint16_t value);
+
+    virtual ~SegmentsResult();
+};
+
 /****************************************************************
  * Result structures for range search.
  *

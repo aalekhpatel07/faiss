@@ -75,6 +75,23 @@ RejectionResult::~RejectionResult() {
 }
 
 /***********************************************************************
+ * SegmentsResult
+ ***********************************************************************/
+
+SegmentsResult::SegmentsResult(size_t num_segments) : num_segments(num_segments) {
+    segments = new std::vector<uint16_t>[num_segments];
+    memset(segments, 0, sizeof(*segments) * num_segments);
+}
+
+void SegmentsResult::set(size_t segment, uint16_t value) {
+    FAISS_THROW_IF_NOT(segment < num_segments && segment >= 0);
+    segments[segment].push_back(value);
+}
+
+SegmentsResult::~SegmentsResult() {
+    delete[] segments;
+}
+/***********************************************************************
  * BufferList
  ***********************************************************************/
 
