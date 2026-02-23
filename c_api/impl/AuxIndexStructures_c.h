@@ -76,11 +76,12 @@ FAISS_DECLARE_GETTER(SegmentsResult, size_t, size)
 
 int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments);
 
-int faiss_SegmentsResult_finalize(
-        const FaissSegmentsResult* p_seg,
-        size_t** limits,
+/// getter for labels and respective distances (not sorted):
+/// result for query i is labels[lims[i]:lims[i+1]]
+int faiss_SegmentsResult_segments(
+        const FaissSegmentsResult* rsr,
+        size_t** lims,
         uint16_t** data);
-
 /** Encapsulates a set of ids to remove. */
 FAISS_DECLARE_CLASS(IDSelector)
 FAISS_DECLARE_DESTRUCTOR(IDSelector)

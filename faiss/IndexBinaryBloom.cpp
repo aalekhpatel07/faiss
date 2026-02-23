@@ -122,10 +122,5 @@ void IndexBinaryBloom::segments(SegmentsResult* result) const {
 
         result->end_segment();
     }
-
-    size_t data_len = result->size();
-    uint16_t* segment_data = new uint16_t[data_len];
-    size_t* segment_limits = new size_t[result->num_segments + 1];
-    result->finalize(segment_limits, segment_data);
 }
 } // namespace faiss

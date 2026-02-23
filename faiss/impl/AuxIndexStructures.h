@@ -64,8 +64,8 @@ struct SegmentsResult {
                          /// outer vector).
     size_t* limits;      /// The marker indices used to divide the data array
                          /// into segments.
-    std::vector<uint16_t> data; /// A flat array of bit positions that are set
-                                /// in all segments combined.
+    uint16_t* data;      /// A flat array of bit positions that are set
+                         /// in all segments combined.
 
     size_t current_segment;
     size_t size;
@@ -76,8 +76,6 @@ struct SegmentsResult {
     void add(uint16_t value);
 
     void end_segment();
-
-    void finalize(size_t* limits_dst, uint16_t* data_dst) const;
 
     virtual ~SegmentsResult();
 };

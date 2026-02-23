@@ -130,15 +130,14 @@ int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments) {
     CATCH_AND_HANDLE
 }
 
-/// getter for segments.
-/// bit positions for segment i is data[limits[i]:limits[i+1]]
-int faiss_SegmentsResult_finalize(
-        FaissSegmentsResult* p_seg,
-        size_t* limits,
-        uint16_t* data) {
+int faiss_SegmentsResult_segments(
+        const FaissSegmentsResult* fsr,
+        size_t** lims,
+        uint16_t** data) {
     try {
-        auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
-        sr->finalize(limits, data);
+        auto sr = reinterpret_cast<const SegmentsResult*>(fsr);
+        *lims = sr->limits;
+        *data = sr->data;
         return 0;
     }
     CATCH_AND_HANDLE

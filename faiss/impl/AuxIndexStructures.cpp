@@ -82,28 +82,21 @@ RejectionResult::~RejectionResult() {
 SegmentsResult::SegmentsResult(size_t num_segments)
         : num_segments(num_segments), current_segment(0) {
     limits = new size_t[num_segments + 1];
-    // data = new std::vector<uint16_t>();
+    data = new uint16_t[65536 * num_segments];
 }
 
 void SegmentsResult::add(uint16_t value) {
-    data.push_back(value);
+    data[size] = value;
     size++;
 }
 
 void SegmentsResult::end_segment() {
-    limits[current_segment++] = data.size();
-}
-
-void SegmentsResult::finalize(size_t* limits_dst, uint16_t* data_dst) const {
-    for (int i = 0; i < data.size(); i++) {
-        data_dst[i] = data[i];
-    }
-    std::memcpy(limits_dst, limits, sizeof(size_t) * (num_segments + 1));
+    limits[current_segment++] = size;
 }
 
 SegmentsResult::~SegmentsResult() {
     delete[] limits;
-    delete[] data.data();
+    delete[] data;
 }
 /***********************************************************************
  * BufferList
