@@ -86,15 +86,16 @@ SegmentsResult::SegmentsResult(size_t num_segments)
 
     memset(limits, 0, sizeof(*limits) * (num_segments + 1));
     memset(data, 0, sizeof(*data) * (65536 * num_segments));
-
 }
 
 void SegmentsResult::add(uint16_t value) {
+    FAISS_THROW_IF_NOT(size < 65536 * num_segments);
     data[size] = value;
     size++;
 }
 
 void SegmentsResult::end_segment() {
+    FAISS_THROW_IF_NOT(current_segment + 1 < num_segments + 1);
     limits[current_segment++] = size;
 }
 

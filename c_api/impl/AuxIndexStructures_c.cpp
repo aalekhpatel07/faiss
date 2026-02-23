@@ -130,6 +130,24 @@ int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments) {
     CATCH_AND_HANDLE
 }
 
+int faiss_SegmentsResult_add(FaissSegmentsResult** p_seg, uint16_t value) {
+    try {
+        auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
+        sr->add(value);
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+int faiss_SegmentsResult_end_segment(FaissSegmentsResult** p_seg) {
+    try {
+        auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
+        sr->end_segment();
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
 int faiss_SegmentsResult_segments(
         const FaissSegmentsResult* fsr,
         size_t** lims,
