@@ -62,10 +62,10 @@ struct RejectionResult {
 struct SegmentsResult {
     size_t num_segments; /// the number of segments (i.e. the length of the
                          /// outer vector).
-    size_t* limits; /// The marker indices used to divide the data array
-                    /// into segments.
-    std::vector<uint16_t> data; /// A flat array of bit positions that are set in all
-                    /// segments combined.
+    size_t* limits;      /// The marker indices used to divide the data array
+                         /// into segments.
+    std::vector<uint16_t> data; /// A flat array of bit positions that are set
+                                /// in all segments combined.
 
     size_t current_segment;
 

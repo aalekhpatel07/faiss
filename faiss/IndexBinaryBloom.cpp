@@ -113,7 +113,7 @@ void IndexBinaryBloom::segments(SegmentsResult* result) const {
             while (mask) {
                 if (block & mask) {
                     size_t value = 64 * offset + bit_offset;
-                    result->add((uint16_t) value);
+                    result->add((uint16_t)value);
                 }
                 bit_offset++;
                 mask >>= 1;
