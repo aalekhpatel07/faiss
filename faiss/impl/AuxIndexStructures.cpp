@@ -97,7 +97,8 @@ void SegmentsResult::add(uint16_t value) {
 
 void SegmentsResult::end_segment() {
     FAISS_THROW_IF_NOT(current_segment + 1 < num_segments + 1);
-    limits[current_segment++] = size;
+    current_segment++;
+    limits[current_segment] = size;
 }
 
 SegmentsResult::~SegmentsResult() {
