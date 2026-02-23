@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <vector>
 
 #include <faiss/impl/AuxIndexStructures.h>
 
@@ -79,18 +80,33 @@ RejectionResult::~RejectionResult() {
  ***********************************************************************/
 
 SegmentsResult::SegmentsResult(size_t num_segments)
-        : num_segments(num_segments) {
-    segments = new std::vector<uint16_t>[num_segments];
-    memset(segments, 0, sizeof(*segments) * num_segments);
+        : num_segments(num_segments), current_segment(0) {
+    limits = new size_t[num_segments + 1];
+    // data = new std::vector<uint16_t>();
 }
 
-void SegmentsResult::set(size_t segment, uint16_t value) {
-    FAISS_THROW_IF_NOT(segment < num_segments && segment >= 0);
-    segments[segment].push_back(value);
+void SegmentsResult::add(uint16_t value) {
+    data.push_back(value);
+}
+
+void SegmentsResult::end_segment() {
+    limits[current_segment++] = data.size();
+}
+
+size_t SegmentsResult::size() const {
+    return data.size();
+}
+
+void SegmentsResult::finalize(size_t* limits_dst, uint16_t* data_dst) const {
+    for (int i = 0; i < data.size(); i++) {
+        data_dst[i] = data[i];
+    }
+    std::memcpy(limits_dst, limits, sizeof(size_t) * (num_segments + 1));
 }
 
 SegmentsResult::~SegmentsResult() {
-    delete[] segments;
+    delete[] limits;
+    delete[] data.data();
 }
 /***********************************************************************
  * BufferList

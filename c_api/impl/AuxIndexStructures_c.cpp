@@ -13,7 +13,6 @@
 #include <faiss/impl/IDSelector.h>
 #include <stdbool.h>
 #include <iostream>
-#include <vector>
 #include "../macros_impl.h"
 
 using faiss::BufferList;
@@ -109,11 +108,15 @@ int faiss_RejectionResult_set(FaissRejectionResult* p_rej, size_t idx, bool v) {
 
 /// getter for rejections.
 /// result for query i is rejections[i]
-void faiss_RejectionResult_rejections(
+int faiss_RejectionResult_rejections(
         FaissRejectionResult* rej,
         bool** rejections) {
-    auto rr = reinterpret_cast<RejectionResult*>(rej);
-    *rejections = rr->rejections;
+    try {
+        auto rr = reinterpret_cast<RejectionResult*>(rej);
+        *rejections = rr->rejections;
+        return 0;
+    }
+    CATCH_AND_HANDLE
 }
 
 DEFINE_DESTRUCTOR(RejectionResult)
@@ -127,25 +130,25 @@ int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments) {
     CATCH_AND_HANDLE
 }
 
-/** Set the value at a specific index. */
-int faiss_SegmentsResult_set(
-        FaissSegmentsResult* p_seg,
-        size_t segment,
-        uint16_t value) {
+size_t faiss_SegmentsResult_size(FaissSegmentsResult** p_seg) {
     try {
-        reinterpret_cast<SegmentsResult*>(p_seg)->set(segment, value);
-        return 0;
+        auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
+        return sr->size();
     }
     CATCH_AND_HANDLE
 }
-
 /// getter for segments.
-/// result for segment i is segments[i]
-void faiss_SegmentsResult_segments(
+/// bit positions for segment i is data[limits[i]:limits[i+1]]
+int faiss_SegmentsResult_finalize(
         FaissSegmentsResult* p_seg,
-        std::vector<uint16_t>** segments) {
-    auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
-    *segments = sr->segments;
+        size_t* limits,
+        uint16_t* data) {
+    try {
+        auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
+        sr->finalize(limits, data);
+        return 0;
+    }
+    CATCH_AND_HANDLE
 }
 
 /// getter for number of 16-bit segments. (i.e. d / 16)

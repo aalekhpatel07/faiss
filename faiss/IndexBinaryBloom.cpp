@@ -113,12 +113,19 @@ void IndexBinaryBloom::segments(SegmentsResult* result) const {
             while (mask) {
                 if (block & mask) {
                     size_t value = 64 * offset + bit_offset;
-                    result->set(segment_idx, (uint16_t)value);
+                    result->add((uint16_t) value);
                 }
                 bit_offset++;
                 mask >>= 1;
             }
         }
+
+        result->end_segment();
     }
+
+    size_t data_len = result->size();
+    uint16_t* segment_data = new uint16_t[data_len];
+    size_t* segment_limits = new size_t[result->num_segments + 1];
+    result->finalize(segment_limits, segment_data);
 }
 } // namespace faiss

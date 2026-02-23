@@ -11,7 +11,6 @@
 #define FAISS_AUX_INDEX_STRUCTURES_C_H
 
 #include <stdbool.h>
-#include <vector>
 #include "../Index_c.h"
 #include "../faiss_c.h"
 
@@ -65,7 +64,7 @@ int faiss_RejectionResult_set(
 
 /// getter for rejections.
 /// result for query i is rejections[i].
-void faiss_RejectionResult_rejections(
+int faiss_RejectionResult_rejections(
         FaissRejectionResult* rej,
         bool** rejections);
 
@@ -76,14 +75,12 @@ FAISS_DECLARE_GETTER(SegmentsResult, size_t, num_segments)
 
 int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments);
 
-int faiss_SegmentsResult_set(
-        const FaissSegmentsResult* p_seg,
-        size_t segment,
-        uint16_t value);
+size_t faiss_SegmentsResult_size(FaissSegmentsResult** p_seg);
 
-void faiss_SegmentsResult_segments(
+int faiss_SegmentsResult_finalize(
         const FaissSegmentsResult* p_seg,
-        std::vector<uint16_t>** segments);
+        size_t** limits,
+        uint16_t** data);
 
 /** Encapsulates a set of ids to remove. */
 FAISS_DECLARE_CLASS(IDSelector)
