@@ -141,6 +141,7 @@ typedef uint64_t size_t;
 #include <faiss/impl/FaissAssert.h>
 
 #include <faiss/IndexBinaryFlat.h>
+#include <faiss/IndexBinaryBloom.h>
 #include <faiss/IndexBinaryIVF.h>
 #include <faiss/IndexBinaryFromFloat.h>
 #include <faiss/IndexBinaryHNSW.h>
@@ -615,6 +616,7 @@ struct faiss::simd16uint16 {};
 
 %include  <faiss/IndexBinary.h>
 %include  <faiss/IndexBinaryFlat.h>
+%include  <faiss/IndexBinaryBloom.h>
 %include  <faiss/IndexBinaryIVF.h>
 %include  <faiss/IndexBinaryFromFloat.h>
 %include  <faiss/IndexBinaryHNSW.h>

@@ -10,6 +10,7 @@
 #ifndef FAISS_AUX_INDEX_STRUCTURES_C_H
 #define FAISS_AUX_INDEX_STRUCTURES_C_H
 
+#include <stdbool.h>
 #include "../Index_c.h"
 #include "../faiss_c.h"
 
@@ -47,6 +48,45 @@ void faiss_RangeSearchResult_labels(
         idx_t** labels,
         float** distances);
 
+FAISS_DECLARE_CLASS(RejectionResult)
+FAISS_DECLARE_DESTRUCTOR(RejectionResult)
+
+/// getter for buffer_size
+FAISS_DECLARE_GETTER(RejectionResult, size_t, nq)
+
+int faiss_RejectionResult_new(FaissRejectionResult** p_rej, size_t nq);
+
+/** Set the value at a specific index. */
+int faiss_RejectionResult_set(
+        const FaissRejectionResult* p_rej,
+        size_t idx,
+        bool v);
+
+/// getter for rejections.
+/// result for query i is rejections[i].
+int faiss_RejectionResult_rejections(
+        FaissRejectionResult* rej,
+        bool** rejections);
+
+FAISS_DECLARE_CLASS(SegmentsResult)
+FAISS_DECLARE_DESTRUCTOR(SegmentsResult)
+
+FAISS_DECLARE_GETTER(SegmentsResult, size_t, num_segments)
+FAISS_DECLARE_GETTER(SegmentsResult, size_t, current_segment)
+FAISS_DECLARE_GETTER(SegmentsResult, size_t, size)
+
+int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments);
+
+int faiss_SegmentsResult_add(FaissSegmentsResult** p_seg, uint16_t value);
+
+int faiss_SegmentsResult_end_segment(FaissSegmentsResult** p_seg);
+
+/// getter for labels and respective distances (not sorted):
+/// result for query i is labels[lims[i]:lims[i+1]]
+int faiss_SegmentsResult_segments(
+        const FaissSegmentsResult* rsr,
+        size_t** lims,
+        uint16_t** data);
 /** Encapsulates a set of ids to remove. */
 FAISS_DECLARE_CLASS(IDSelector)
 FAISS_DECLARE_DESTRUCTOR(IDSelector)

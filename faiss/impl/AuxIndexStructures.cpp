@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <vector>
 
 #include <faiss/impl/AuxIndexStructures.h>
 
@@ -55,6 +56,55 @@ RangeSearchResult::~RangeSearchResult() {
     delete[] lims;
 }
 
+/***********************************************************************
+ * RejectionResult
+ ***********************************************************************/
+
+RejectionResult::RejectionResult(size_t nq) : nq(nq) {
+    rejections = new bool[nq];
+    memset(rejections, 0, sizeof(*rejections) * nq);
+}
+
+void RejectionResult::set(size_t idx, bool value) {
+    FAISS_THROW_IF_NOT(idx < nq && idx >= 0);
+
+    rejections[idx] = value;
+}
+
+RejectionResult::~RejectionResult() {
+    delete[] rejections;
+}
+
+/***********************************************************************
+ * SegmentsResult
+ ***********************************************************************/
+
+SegmentsResult::SegmentsResult(size_t num_segments)
+        : num_segments(num_segments), current_segment(0), size(0) {
+    FAISS_THROW_IF_NOT(num_segments > 0);
+    limits = new size_t[num_segments + 1];
+    data = new uint16_t[65536 * num_segments];
+
+    memset(limits, 0, sizeof(size_t) * (num_segments + 1));
+    memset(data, 0, sizeof(uint16_t) * (65536 * num_segments));
+}
+
+void SegmentsResult::add(uint16_t value) {
+    FAISS_THROW_IF_NOT(size < 65536 * num_segments && size >= 0);
+    data[size] = value;
+    size++;
+}
+
+void SegmentsResult::end_segment() {
+    FAISS_THROW_IF_NOT(current_segment + 1 < num_segments + 1);
+    current_segment++;
+    limits[current_segment] = size;
+}
+
+SegmentsResult::~SegmentsResult() {
+    delete[] limits;
+    delete[] data;
+}
 /***********************************************************************
  * BufferList
  ***********************************************************************/

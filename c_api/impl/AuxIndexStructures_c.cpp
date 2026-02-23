@@ -11,6 +11,7 @@
 #include <faiss/impl/AuxIndexStructures.h>
 #include <faiss/impl/DistanceComputer.h>
 #include <faiss/impl/IDSelector.h>
+#include <stdbool.h>
 #include <iostream>
 #include "../macros_impl.h"
 
@@ -27,6 +28,8 @@ using faiss::IDSelectorXOr;
 using faiss::RangeQueryResult;
 using faiss::RangeSearchPartialResult;
 using faiss::RangeSearchResult;
+using faiss::RejectionResult;
+using faiss::SegmentsResult;
 
 DEFINE_GETTER(RangeSearchResult, size_t, nq)
 
@@ -81,6 +84,87 @@ void faiss_RangeSearchResult_labels(
     *labels = sr->labels;
     *distances = sr->distances;
 }
+
+int faiss_RejectionResult_new(FaissRejectionResult** p_rej, size_t nq) {
+    try {
+        *p_rej = reinterpret_cast<FaissRejectionResult*>(
+                new RejectionResult(nq));
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+/// getter for buffer_size
+DEFINE_GETTER(RejectionResult, size_t, nq)
+
+/** Set the value at a specific index. */
+int faiss_RejectionResult_set(FaissRejectionResult* p_rej, size_t idx, bool v) {
+    try {
+        reinterpret_cast<RejectionResult*>(p_rej)->set(idx, v);
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+/// getter for rejections.
+/// result for query i is rejections[i]
+int faiss_RejectionResult_rejections(
+        FaissRejectionResult* rej,
+        bool** rejections) {
+    try {
+        auto rr = reinterpret_cast<RejectionResult*>(rej);
+        *rejections = rr->rejections;
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+DEFINE_DESTRUCTOR(RejectionResult)
+
+int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments) {
+    try {
+        *p_seg = reinterpret_cast<FaissSegmentsResult*>(
+                new SegmentsResult(num_segments));
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+int faiss_SegmentsResult_add(FaissSegmentsResult** p_seg, uint16_t value) {
+    try {
+        auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
+        sr->add(value);
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+int faiss_SegmentsResult_end_segment(FaissSegmentsResult** p_seg) {
+    try {
+        auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
+        sr->end_segment();
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+int faiss_SegmentsResult_segments(
+        const FaissSegmentsResult* fsr,
+        size_t** lims,
+        uint16_t** data) {
+    try {
+        auto sr = reinterpret_cast<const SegmentsResult*>(fsr);
+        *lims = sr->limits;
+        *data = sr->data;
+        return 0;
+    }
+    CATCH_AND_HANDLE
+}
+
+/// getter for number of 16-bit segments. (i.e. d / 16)
+DEFINE_GETTER(SegmentsResult, size_t, num_segments)
+DEFINE_GETTER(SegmentsResult, size_t, size)
+DEFINE_GETTER(SegmentsResult, size_t, current_segment)
 
 DEFINE_DESTRUCTOR(IDSelector)
 

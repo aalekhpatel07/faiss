@@ -46,6 +46,40 @@ struct RangeSearchResult {
     virtual ~RangeSearchResult();
 };
 
+struct RejectionResult {
+    size_t nq;        ///< nb of queries
+    bool* rejections; /// corresponding booleans.
+
+    /// rejections array.
+    RejectionResult(size_t nq);
+
+    /// set one result to the buffer.
+    void set(size_t idx, bool v);
+
+    virtual ~RejectionResult();
+};
+
+struct SegmentsResult {
+    size_t num_segments; /// the number of segments (i.e. the length of the
+                         /// outer vector).
+    size_t* limits;      /// The marker indices used to divide the data array
+                         /// into segments.
+    uint16_t* data;      /// A flat array of bit positions that are set
+                         /// in all segments combined.
+
+    size_t current_segment;
+    size_t size;
+
+    SegmentsResult(size_t num_segments);
+
+    /// Include the given value in a segment.
+    void add(uint16_t value);
+
+    void end_segment();
+
+    virtual ~SegmentsResult();
+};
+
 /****************************************************************
  * Result structures for range search.
  *
