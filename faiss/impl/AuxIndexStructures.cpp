@@ -81,15 +81,16 @@ RejectionResult::~RejectionResult() {
 
 SegmentsResult::SegmentsResult(size_t num_segments)
         : num_segments(num_segments), current_segment(0), size(0) {
+    FAISS_THROW_IF_NOT(num_segments > 0);
     limits = new size_t[num_segments + 1];
     data = new uint16_t[65536 * num_segments];
 
-    memset(limits, 0, sizeof(*limits) * (num_segments + 1));
-    memset(data, 0, sizeof(*data) * (65536 * num_segments));
+    memset(limits, 0, sizeof(size_t) * (num_segments + 1));
+    memset(data, 0, sizeof(uint16_t) * (65536 * num_segments));
 }
 
 void SegmentsResult::add(uint16_t value) {
-    FAISS_THROW_IF_NOT(size < 65536 * num_segments);
+    FAISS_THROW_IF_NOT(size < 65536 * num_segments && size >= 0);
     data[size] = value;
     size++;
 }

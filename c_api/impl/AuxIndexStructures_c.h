@@ -72,6 +72,7 @@ FAISS_DECLARE_CLASS(SegmentsResult)
 FAISS_DECLARE_DESTRUCTOR(SegmentsResult)
 
 FAISS_DECLARE_GETTER(SegmentsResult, size_t, num_segments)
+FAISS_DECLARE_GETTER(SegmentsResult, size_t, current_segment)
 FAISS_DECLARE_GETTER(SegmentsResult, size_t, size)
 
 int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments);

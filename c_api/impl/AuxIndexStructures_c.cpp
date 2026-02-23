@@ -164,6 +164,7 @@ int faiss_SegmentsResult_segments(
 /// getter for number of 16-bit segments. (i.e. d / 16)
 DEFINE_GETTER(SegmentsResult, size_t, num_segments)
 DEFINE_GETTER(SegmentsResult, size_t, size)
+DEFINE_GETTER(SegmentsResult, size_t, current_segment)
 
 DEFINE_DESTRUCTOR(IDSelector)
 
