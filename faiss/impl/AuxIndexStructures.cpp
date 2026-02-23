@@ -87,14 +87,11 @@ SegmentsResult::SegmentsResult(size_t num_segments)
 
 void SegmentsResult::add(uint16_t value) {
     data.push_back(value);
+    size++;
 }
 
 void SegmentsResult::end_segment() {
     limits[current_segment++] = data.size();
-}
-
-size_t SegmentsResult::size() const {
-    return data.size();
 }
 
 void SegmentsResult::finalize(size_t* limits_dst, uint16_t* data_dst) const {

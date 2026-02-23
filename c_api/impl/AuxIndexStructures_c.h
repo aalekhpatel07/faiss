@@ -72,10 +72,9 @@ FAISS_DECLARE_CLASS(SegmentsResult)
 FAISS_DECLARE_DESTRUCTOR(SegmentsResult)
 
 FAISS_DECLARE_GETTER(SegmentsResult, size_t, num_segments)
+FAISS_DECLARE_GETTER(SegmentsResult, size_t, size)
 
 int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments);
-
-size_t faiss_SegmentsResult_size(FaissSegmentsResult** p_seg);
 
 int faiss_SegmentsResult_finalize(
         const FaissSegmentsResult* p_seg,

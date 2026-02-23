@@ -68,6 +68,7 @@ struct SegmentsResult {
                                 /// in all segments combined.
 
     size_t current_segment;
+    size_t size;
 
     SegmentsResult(size_t num_segments);
 
@@ -76,7 +77,6 @@ struct SegmentsResult {
 
     void end_segment();
 
-    size_t size() const;
     void finalize(size_t* limits_dst, uint16_t* data_dst) const;
 
     virtual ~SegmentsResult();

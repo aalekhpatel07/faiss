@@ -130,13 +130,6 @@ int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments) {
     CATCH_AND_HANDLE
 }
 
-size_t faiss_SegmentsResult_size(FaissSegmentsResult** p_seg) {
-    try {
-        auto sr = reinterpret_cast<SegmentsResult*>(p_seg);
-        return sr->size();
-    }
-    CATCH_AND_HANDLE
-}
 /// getter for segments.
 /// bit positions for segment i is data[limits[i]:limits[i+1]]
 int faiss_SegmentsResult_finalize(
@@ -153,6 +146,7 @@ int faiss_SegmentsResult_finalize(
 
 /// getter for number of 16-bit segments. (i.e. d / 16)
 DEFINE_GETTER(SegmentsResult, size_t, num_segments)
+DEFINE_GETTER(SegmentsResult, size_t, size)
 
 DEFINE_DESTRUCTOR(IDSelector)
 
