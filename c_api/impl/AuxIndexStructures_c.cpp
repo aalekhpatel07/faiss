@@ -13,6 +13,7 @@
 #include <faiss/impl/IDSelector.h>
 #include <stdbool.h>
 #include <iostream>
+#include <vector>
 #include "../macros_impl.h"
 
 using faiss::BufferList;
