@@ -43,9 +43,14 @@ struct IndexBinaryBloom {
 
     /// Determine if any of the query vectors are guaranteed
     /// to lie outside the radius from all the indexed vectors.
-    void should_reject(idx_t n, const uint8_t* x, int acceptance_radius, RejectionResult* result) const;
+    void should_reject(
+            idx_t n,
+            const uint8_t* x,
+            int acceptance_radius,
+            RejectionResult* result) const;
 
-    /// Get all indexed uint16_t's for every 16-bit segment of the indexed vectors.
+    /// Get all indexed uint16_t's for every 16-bit segment of the indexed
+    /// vectors.
     void segments(SegmentsResult* result) const;
 };
 

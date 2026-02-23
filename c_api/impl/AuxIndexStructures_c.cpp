@@ -127,7 +127,10 @@ int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments) {
 }
 
 /** Set the value at a specific index. */
-int faiss_SegmentsResult_set(FaissSegmentsResult* p_seg, size_t segment, uint16_t value) {
+int faiss_SegmentsResult_set(
+        FaissSegmentsResult* p_seg,
+        size_t segment,
+        uint16_t value) {
     try {
         reinterpret_cast<SegmentsResult*>(p_seg)->set(segment, value);
         return 0;
@@ -146,7 +149,6 @@ void faiss_SegmentsResult_segments(
 
 /// getter for number of 16-bit segments. (i.e. d / 16)
 DEFINE_GETTER(SegmentsResult, size_t, num_segments)
-
 
 DEFINE_DESTRUCTOR(IDSelector)
 

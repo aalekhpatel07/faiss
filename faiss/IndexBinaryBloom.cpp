@@ -52,7 +52,6 @@ void IndexBinaryBloom::should_reject(
         const uint8_t* x,
         int acceptance_radius,
         RejectionResult* result) const {
-
     // Even if none of the segments match,
     // we can only guarantee the query vectors
     // are at least (d / 16) distance away.
@@ -114,7 +113,7 @@ void IndexBinaryBloom::segments(SegmentsResult* result) const {
             while (mask) {
                 if (block & mask) {
                     size_t value = 64 * offset + bit_offset;
-                    result->set(segment_idx, (uint16_t) value);
+                    result->set(segment_idx, (uint16_t)value);
                 }
                 bit_offset++;
                 mask >>= 1;

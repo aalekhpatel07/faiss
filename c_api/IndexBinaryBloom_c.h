@@ -67,7 +67,7 @@ int faiss_IndexBinaryBloom_should_reject(
 /** Get the bitmap segments stored in the index.
  * @param index                 opaque pointer to index object
  * @param result                opaque pointer to the results object
-*/
+ */
 int faiss_IndexBinaryBloom_segments(
         const FaissIndexBinaryBloom* index,
         FaissSegmentsResult* result);

@@ -77,13 +77,13 @@ FAISS_DECLARE_GETTER(SegmentsResult, size_t, num_segments)
 int faiss_SegmentsResult_new(FaissSegmentsResult** p_seg, size_t num_segments);
 
 int faiss_SegmentsResult_set(
-    const FaissSegmentsResult* p_seg,
-    size_t segment,
-    uint16_t value);
+        const FaissSegmentsResult* p_seg,
+        size_t segment,
+        uint16_t value);
 
 void faiss_SegmentsResult_segments(
-    const FaissSegmentsResult* p_seg,
-    std::vector<uint16_t>** segments);
+        const FaissSegmentsResult* p_seg,
+        std::vector<uint16_t>** segments);
 
 /** Encapsulates a set of ids to remove. */
 FAISS_DECLARE_CLASS(IDSelector)

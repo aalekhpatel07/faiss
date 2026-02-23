@@ -78,7 +78,8 @@ RejectionResult::~RejectionResult() {
  * SegmentsResult
  ***********************************************************************/
 
-SegmentsResult::SegmentsResult(size_t num_segments) : num_segments(num_segments) {
+SegmentsResult::SegmentsResult(size_t num_segments)
+        : num_segments(num_segments) {
     segments = new std::vector<uint16_t>[num_segments];
     memset(segments, 0, sizeof(*segments) * num_segments);
 }

@@ -43,18 +43,20 @@ int faiss_IndexBinaryBloom_should_reject(
         FaissRejectionResult* result) {
     try {
         reinterpret_cast<const faiss::IndexBinaryBloom*>(index)->should_reject(
-                n, x, acceptance_radius, reinterpret_cast<faiss::RejectionResult*>(result));
+                n,
+                x,
+                acceptance_radius,
+                reinterpret_cast<faiss::RejectionResult*>(result));
     }
     CATCH_AND_HANDLE
 }
 
 int faiss_IndexBinaryBloom_segments(
-    const FaissIndexBinaryBloom* index,
-    FaissSegmentsResult* result) {
+        const FaissIndexBinaryBloom* index,
+        FaissSegmentsResult* result) {
     try {
         reinterpret_cast<const faiss::IndexBinaryBloom*>(index)->segments(
-            reinterpret_cast<faiss::SegmentsResult*>(result)
-        );
+                reinterpret_cast<faiss::SegmentsResult*>(result));
     }
     CATCH_AND_HANDLE
 }
