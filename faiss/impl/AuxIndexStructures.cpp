@@ -80,7 +80,7 @@ RejectionResult::~RejectionResult() {
  ***********************************************************************/
 
 SegmentsResult::SegmentsResult(size_t num_segments)
-        : num_segments(num_segments), current_segment(0) {
+        : num_segments(num_segments), current_segment(0), size(0) {
     limits = new size_t[num_segments + 1];
     data = new uint16_t[65536 * num_segments];
 
