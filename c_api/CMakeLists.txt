@@ -12,6 +12,7 @@ set(CMAKE_C_STANDARD 11)
 set(FAISS_C_SRC
   AutoTune_c.cpp
   Clustering_c.cpp
+  invlists/DirectMap_c.cpp
   IndexFlat_c.cpp
   IndexIVFFlat_c.cpp
   IndexIVF_c.cpp
@@ -118,6 +119,7 @@ file(GLOB FAISS_C_API_HEADERS
      RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
      "*.h"
      "impl/*.h"
+     "invlists/*.h"
      "utils/*.h")
 
 faiss_install_headers("${FAISS_C_API_HEADERS}" c_api)
