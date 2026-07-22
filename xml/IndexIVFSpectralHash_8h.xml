@@ -4,6 +4,7 @@
     <compoundname>IndexIVFSpectralHash.h</compoundname>
     <includes local="no">vector</includes>
     <includes refid="IndexIVF_8h" local="no">faiss/IndexIVF.h</includes>
+    <includedby refid="IndexIVFSpectralHash__impl_8h" local="no">faiss/impl/binary_hamming/IndexIVFSpectralHash_impl.h</includedby>
     <incdepgraph>
       <node id="5">
         <label>faiss/Clustering.h</label>
@@ -61,6 +62,8 @@
         <childnode refid="9" relation="include">
         </childnode>
         <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
         </childnode>
       </node>
       <node id="19">
@@ -127,6 +130,8 @@
         <childnode refid="20" relation="include">
         </childnode>
         <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="31" relation="include">
         </childnode>
         <childnode refid="2" relation="include">
         </childnode>
@@ -293,6 +298,18 @@
         <label>vector</label>
       </node>
     </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>faiss/IndexIVFSpectralHash.h</label>
+        <link refid="IndexIVFSpectralHash_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>faiss/impl/binary_hamming/IndexIVFSpectralHash_impl.h</label>
+        <link refid="IndexIVFSpectralHash__impl_8h_source"/>
+      </node>
+    </invincdepgraph>
     <innerclass refid="structfaiss_1_1IndexIVFSpectralHash" prot="public">faiss::IndexIVFSpectralHash</innerclass>
     <innernamespace refid="namespacefaiss">faiss</innernamespace>
     <briefdescription>
@@ -334,7 +351,7 @@
 <codeline lineno="32"><highlight class="comment"><sp/><sp/><sp/><sp/>///<sp/>transformation<sp/>from<sp/>d<sp/>to<sp/>nbit<sp/>dim</highlight></codeline>
 <codeline lineno="33" refid="structfaiss_1_1IndexIVFSpectralHash_1aea6fba82a2b471e8bdddbaba2050e446" refkind="member"><highlight class="comment"></highlight><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structfaiss_1_1VectorTransform" kindref="compound">VectorTransform</ref>*<sp/><ref refid="structfaiss_1_1IndexIVFSpectralHash_1aea6fba82a2b471e8bdddbaba2050e446" kindref="member">vt</ref><sp/>=<sp/></highlight><highlight class="keyword">nullptr</highlight><highlight class="normal">;</highlight><highlight class="comment"></highlight></codeline>
 <codeline lineno="34"><highlight class="comment"><sp/><sp/><sp/><sp/>///<sp/>own<sp/>the<sp/>vt</highlight></codeline>
-<codeline lineno="35" refid="structfaiss_1_1IndexIVFSpectralHash_1a7481e7ffaeb23c6fb91940d03b55724d" refkind="member"><highlight class="comment"></highlight><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structfaiss_1_1IndexIVFSpectralHash_1a7481e7ffaeb23c6fb91940d03b55724d" kindref="member">own_fields</ref><sp/>=<sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="35" refid="structfaiss_1_1IndexIVFSpectralHash_1a7481e7ffaeb23c6fb91940d03b55724d" refkind="member"><highlight class="comment"></highlight><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structfaiss_1_1IndexIVFSpectralHash_1a7481e7ffaeb23c6fb91940d03b55724d" kindref="member">own_fields</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
 <codeline lineno="36"><highlight class="normal"></highlight><highlight class="comment"></highlight></codeline>
 <codeline lineno="37"><highlight class="comment"><sp/><sp/><sp/><sp/>///<sp/>nb<sp/>of<sp/>bits<sp/>of<sp/>the<sp/>binary<sp/>signature</highlight></codeline>
 <codeline lineno="38" refid="structfaiss_1_1IndexIVFSpectralHash_1a0fab89bc0764922e318968e2c58a3b10" refkind="member"><highlight class="comment"></highlight><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structfaiss_1_1IndexIVFSpectralHash_1a0fab89bc0764922e318968e2c58a3b10" kindref="member">nbit</ref><sp/>=<sp/>0;</highlight><highlight class="comment"></highlight></codeline>
@@ -363,12 +380,12 @@
 <codeline lineno="61"><highlight class="normal"></highlight></codeline>
 <codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structfaiss_1_1IndexIVFSpectralHash" kindref="compound">IndexIVFSpectralHash</ref>();</highlight></codeline>
 <codeline lineno="63"><highlight class="normal"></highlight></codeline>
-<codeline lineno="64" refid="structfaiss_1_1IndexIVFSpectralHash_1a4292e9754ca7ba9aa16bb7682210de28" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="structfaiss_1_1IndexIVFSpectralHash_1a4292e9754ca7ba9aa16bb7682210de28" kindref="member">train_encoder</ref>(<ref refid="namespacefaiss_1ad63e84aa82f5bb0405ed924d58b20e2e" kindref="member">idx_t</ref><sp/>n,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>x,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="namespacefaiss_1ad63e84aa82f5bb0405ed924d58b20e2e" kindref="member">idx_t</ref>*<sp/><ref refid="structfaiss_1_1Index_1a010ae05c4ba70d309f9821d9b03182aa" kindref="member">assign</ref>)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="64" refid="structfaiss_1_1IndexIVFSpectralHash_1a4292e9754ca7ba9aa16bb7682210de28" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="structfaiss_1_1IndexIVFSpectralHash_1a4292e9754ca7ba9aa16bb7682210de28" kindref="member">train_encoder</ref>(<ref refid="namespacefaiss_1ad95f6ecce1dcddede15df19a5b17adf6" kindref="member">idx_t</ref><sp/>n,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>x,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="namespacefaiss_1ad95f6ecce1dcddede15df19a5b17adf6" kindref="member">idx_t</ref>*<sp/><ref refid="structfaiss_1_1Index_1a010ae05c4ba70d309f9821d9b03182aa" kindref="member">assign</ref>)<sp/></highlight><highlight class="keyword">override</highlight><highlight class="normal">;</highlight></codeline>
 <codeline lineno="65"><highlight class="normal"></highlight></codeline>
 <codeline lineno="66" refid="structfaiss_1_1IndexIVFSpectralHash_1aecae74e51701e356d64788404814bb46" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="structfaiss_1_1IndexIVFSpectralHash_1aecae74e51701e356d64788404814bb46" kindref="member">encode_vectors</ref>(</highlight></codeline>
-<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="namespacefaiss_1ad63e84aa82f5bb0405ed924d58b20e2e" kindref="member">idx_t</ref><sp/>n,</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="namespacefaiss_1ad95f6ecce1dcddede15df19a5b17adf6" kindref="member">idx_t</ref><sp/>n,</highlight></codeline>
 <codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>x,</highlight></codeline>
-<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="namespacefaiss_1ad63e84aa82f5bb0405ed924d58b20e2e" kindref="member">idx_t</ref>*<sp/>list_nos,</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="namespacefaiss_1ad95f6ecce1dcddede15df19a5b17adf6" kindref="member">idx_t</ref>*<sp/>list_nos,</highlight></codeline>
 <codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t*<sp/>codes,</highlight></codeline>
 <codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>include_listnos<sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">)<sp/></highlight><highlight class="keyword">const<sp/>override</highlight><highlight class="normal">;</highlight></codeline>
 <codeline lineno="72"><highlight class="normal"></highlight></codeline>
